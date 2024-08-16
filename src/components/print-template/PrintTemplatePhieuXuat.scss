@@ -1,0 +1,89 @@
+.print-preview_phieuxuat {
+  width: 100%;
+  //   min-height: 297mm;
+  padding: 5mm;
+  //   margin: 10mm auto;
+  background: white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  font-family: "Times New Roman", Times, serif;
+}
+
+.header_phieuxuat {
+  display: flex;
+
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.left-header_phieuxuat,
+.right-header_phieuxuat {
+  text-align: center;
+  white-space: nowrap;
+}
+
+h3,
+h4 {
+  margin: 5px 0;
+}
+.doclap_phieuxuat {
+  margin-bottom: -10px;
+}
+.date_phieuxuat {
+  text-align: right;
+  margin-bottom: 20px;
+  margin-right: 20px;
+  margin-top: -20px;
+}
+
+.title_phieuxuat,
+.subtitle {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.content {
+  margin: 5px 0;
+}
+
+.content-text {
+  border-bottom: 1px solid #000;
+  padding-bottom: 5px;
+}
+
+.footer_phieuxuat {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.department_phieuxuat,
+.signature_phieuxuat {
+  text-align: center;
+}
+
+.ink-table_phieuxuat {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 3mm;
+}
+
+.ink-table_phieuxuat th,
+.ink-table_phieuxuat td {
+  border: 1px solid #000;
+  padding: 2mm 4mm;
+  text-align: left;
+}
+
+.ink-table_phieuxuat th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.ink-table_phieuxuat tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+@media print {
+  .print-preview_phieuxuat {
+    box-shadow: none;
+  }
+}
