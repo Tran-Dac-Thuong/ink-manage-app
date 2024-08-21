@@ -1,37 +1,37 @@
-import { Box } from "@mui/material";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import axios from "axios";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as jose from "jose";
+import { Button, notification } from "antd";
 import {
   MaterialReactTable,
   useMaterialReactTable,
 } from "material-react-table";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import ButtonBootstrap from "react-bootstrap/Button";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import axios from "axios";
-import * as jose from "jose";
-import { Button, notification } from "antd";
-import { Helmet } from "react-helmet";
+import { Box } from "@mui/material";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
 import fontPath from "../fonts/Roboto-Black.ttf";
+import { Helmet } from "react-helmet";
+import { Link, useNavigate } from "react-router-dom";
 import { PrinterFilled } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
-import { PrintTemplateTonKho } from "./print-template/PrintTemplateTonKho";
+import { PrintTemplateDanhSachMucInDaNhap } from "./print-template/PrintTemplateDanhSachMucInDaNhap";
+import { PrintTemplateDanhSachMucInDaXuat } from "./print-template/PrintTemplateDanhSachMucInDaXuat";
 
-const TonKho = (props) => {
+const DanhSachMucInDaXuat = (props) => {
+  const [danhSachDaXuat, setDanhSachDaXuat] = useState([]);
+  const [loadingDanhSachDaXuat, setLoadingDanhSachDaXuat] = useState(true);
   const [dataTonkho, setDataTonKho] = useState([]);
-  const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
-
-  const secretKey = "your-secret-key";
-
-  const [loadingTonKho, setLoadingTonKho] = useState(true);
 
   const [api, contextHolder] = notification.useNotification();
 
   const navigate = useNavigate();
+
+  const secretKey = "your-secret-key";
 
   const componentRef = useRef();
 
@@ -93,12 +93,12 @@ const TonKho = (props) => {
   }, []);
 
   useEffect(() => {
-    const fetchDataTonKho = async () => {
+    const fetchDanhSachDaXuat = async () => {
       try {
         let res = await axios.get("http://172.16.0.53:8080/danh_sach");
         if (res && res.data) {
           let tonkhoArr = [];
-          let xuatArr = [];
+          let danhsachdaxuatArr = [];
           let nhapArr = [];
 
           const decodedData = await Promise.all(
@@ -120,19 +120,10 @@ const TonKho = (props) => {
               let danhsachmucinxuatkho =
                 decodedData[i].decodedContent?.content?.danhsachphieu
                   ?.danhsachmucincuaphieu;
-              xuatArr = [...xuatArr, ...danhsachmucinxuatkho];
-            }
-          }
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã duyệt"
-            ) {
-              let danhsachmucinnhapkho =
-                decodedData[i].decodedContent?.content?.danhsachphieu
-                  ?.danhsachmucincuaphieu;
-              nhapArr = [...nhapArr, ...danhsachmucinnhapkho];
+              danhsachdaxuatArr = [
+                ...danhsachdaxuatArr,
+                ...danhsachmucinxuatkho,
+              ];
             }
           }
 
@@ -148,17 +139,29 @@ const TonKho = (props) => {
             }
           }
 
+          for (let i = 0; i < decodedData.length; i++) {
+            if (
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.trangthai === "Đã duyệt"
+            ) {
+              let danhsachmucinnhapkho =
+                decodedData[i].decodedContent?.content?.danhsachphieu
+                  ?.danhsachmucincuaphieu;
+              nhapArr = [...nhapArr, ...danhsachmucinnhapkho];
+            }
+          }
+
           // Thêm id vào từng phần tử của tonkhoArr
           let idCounter = 1;
-          tonkhoArr = tonkhoArr.map((item) => ({
+          danhsachdaxuatArr = danhsachdaxuatArr.map((item) => ({
             ...item,
             stt: idCounter++,
           }));
 
-          setDataDaXuat(xuatArr);
           setDataDaNhap(nhapArr);
           setDataTonKho(tonkhoArr);
-          setLoadingTonKho(false);
+          setDanhSachDaXuat(danhsachdaxuatArr);
+          setLoadingDanhSachDaXuat(false);
         }
       } catch (error) {
         api["error"]({
@@ -167,8 +170,77 @@ const TonKho = (props) => {
         });
       }
     };
-    fetchDataTonKho();
+    fetchDanhSachDaXuat();
   }, []);
+
+  const handleExportRowsExcel = (rows) => {
+    const rowData = rows.map((row) => row.original);
+
+    let configDataArr = [];
+
+    for (let i = 0; i < rowData.length; i++) {
+      let configData = {
+        STT: rows[i].index + 1,
+        "Mã QRCode": rowData[i].qrcode,
+        "Tên mực": rowData[i].tenmuc,
+        "Mã mực": rowData[i].mamuc,
+        "Số lượng": rowData[i].soluong,
+        "Tên phiếu": rowData[i].tenphieu,
+      };
+
+      configDataArr.push(configData);
+    }
+    // Tạo một workbook mới
+    const wb = XLSX.utils.book_new();
+
+    // Chuyển đổi dữ liệu thành worksheet
+    const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+    // Thêm worksheet vào workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in đã xuất");
+
+    // Tạo buffer
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+    // Chuyển buffer thành Blob
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+    });
+
+    // Lưu file
+    saveAs(blob, "danhsachmucindaxuat.xlsx");
+  };
+
+  const handleExportRowsPDF = (rows) => {
+    const doc = new jsPDF();
+
+    // Thêm font vào PDF
+    doc.addFont(fontPath, "Roboto", "normal");
+    doc.setFont("Roboto");
+
+    const tableData = rows.map((row) => Object.values(row.original));
+
+    const tableHeaders = columns.map((c) => c.header);
+
+    let rearrangedArray = tableData.map((arr) => [
+      arr[9],
+      arr[0],
+      arr[1],
+      arr[5],
+      arr[2],
+      arr[6],
+      arr[3],
+      arr[4],
+    ]);
+
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: rearrangedArray,
+      styles: { font: "Roboto", fontStyle: "normal" },
+    });
+
+    doc.save("danhsachmucindaxuat.pdf");
+  };
 
   const columns = useMemo(
     () => [
@@ -201,83 +273,13 @@ const TonKho = (props) => {
     []
   );
 
-  const handleExportRowsExcel = (rows) => {
-    const rowData = rows.map((row) => row.original);
-
-    let configDataArr = [];
-
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Mã QRCode": rowData[i].qrcode,
-        "Tên mực": rowData[i].tenmuc,
-        "Mã mực": rowData[i].mamuc,
-        "Số lượng": rowData[i].soluong,
-        "Loại phiếu": rowData[i].loaiphieu,
-        "Tên phiếu": rowData[i].tenphieu,
-      };
-
-      configDataArr.push(configData);
-    }
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách tồn kho");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "danhsachtonkho.xlsx");
-  };
-
-  const handleExportRowsPDF = (rows) => {
-    const doc = new jsPDF();
-
-    // Thêm font vào PDF
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
-
-    const tableData = rows.map((row) => Object.values(row.original));
-
-    const tableHeaders = columns.map((c) => c.header);
-
-    let rearrangedArray = tableData.map((arr) => [
-      arr[7],
-      arr[0],
-      arr[1],
-      arr[5],
-      arr[2],
-      arr[6],
-      arr[3],
-      arr[4],
-    ]);
-
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: rearrangedArray,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
-
-    doc.save("danhsachtonkho.pdf");
-  };
-
   const table = useMaterialReactTable({
     columns,
-    data: dataTonkho,
+    data: danhSachDaXuat,
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
-    state: { isLoading: loadingTonKho },
+    state: { isLoading: loadingDanhSachDaXuat },
     muiCircularProgressProps: {
       color: "primary",
       thickness: 5,
@@ -326,7 +328,7 @@ const TonKho = (props) => {
       {contextHolder}
       <Helmet>
         <meta charSet="utf-8" />
-        <title>Tồn kho</title>
+        <title>Danh sách mực in đã xuất</title>
       </Helmet>
       <div className="container">
         <div className="text-center mt-5">
@@ -338,14 +340,15 @@ const TonKho = (props) => {
               Trang chủ
             </button>
           </Link>
+          <Link to="/tonkho">
+            <button type="button" className="btn btn-warning me-2">
+              Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>
+            </button>
+          </Link>
+
           <Link to="/danhsachmucindanhap">
             <button type="button" className="btn btn-success me-2">
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
-            </button>
-          </Link>
-          <Link to="/danhsachmucindaxuat">
-            <button type="button" className="btn btn-danger me-2">
-              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
             </button>
           </Link>
 
@@ -355,9 +358,9 @@ const TonKho = (props) => {
             </button>
           </Link>
         </div>
-        <h4 className="text-center mt-5 mb-5">DANH SÁCH TỒN KHO</h4>
+        <h4 className="text-center mt-5 mb-5">DANH SÁCH MỰC IN ĐÃ XUẤT</h4>
         <div className="mb-3">
-          {dataTonkho && dataTonkho.length > 0 ? (
+          {danhSachDaXuat && danhSachDaXuat.length > 0 ? (
             <>
               {" "}
               <Button type="primary" htmlType="submit" onClick={handlePrint}>
@@ -380,10 +383,13 @@ const TonKho = (props) => {
         </div>
       </div>
       <div style={{ display: "none" }}>
-        <PrintTemplateTonKho ref={componentRef} data={dataTonkho} />
+        <PrintTemplateDanhSachMucInDaXuat
+          ref={componentRef}
+          data={danhSachDaXuat}
+        />
       </div>
     </>
   );
 };
 
-export default TonKho;
+export default DanhSachMucInDaXuat;

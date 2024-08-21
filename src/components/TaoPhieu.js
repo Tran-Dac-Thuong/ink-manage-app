@@ -625,12 +625,16 @@ const CreatePhieu = (props) => {
               Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>
             </button>
           </Link>
-          <button type="button" className="btn btn-success me-2">
-            Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
-          </button>
-          <button type="button" className="btn btn-danger me-2">
-            Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
-          </button>
+          <Link to="/danhsachmucindanhap">
+            <button type="button" className="btn btn-success me-2">
+              Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
+            </button>
+          </Link>
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
           <Link to="/thongke">
             <button type="button" className="btn btn-primary me-2">
               Thống kê

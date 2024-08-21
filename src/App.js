@@ -13,6 +13,8 @@ import "react-toastify/dist/ReactToastify.css";
 import LoadingBar from "react-top-loading-bar";
 import { useState } from "react";
 import Thongke from "./components/Thongke";
+import DanhSachMucInDaNhap from "./components/DanhSachMucInDaNhap";
+import DanhSachMucInDaXuat from "./components/DanhSachMucInDaXuat";
 
 function App() {
   const [progress, setProgress] = useState(0);
@@ -31,6 +33,14 @@ function App() {
             <Route
               path={"/"}
               element={<DanhSachPhieu setProgress={setProgress} />}
+            ></Route>
+            <Route
+              path={"/danhsachmucindanhap"}
+              element={<DanhSachMucInDaNhap setProgress={setProgress} />}
+            ></Route>
+            <Route
+              path={"/danhsachmucindaxuat"}
+              element={<DanhSachMucInDaXuat setProgress={setProgress} />}
             ></Route>
             <Route
               path={"/danhsachphieu"}

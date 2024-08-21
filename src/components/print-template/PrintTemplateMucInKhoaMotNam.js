@@ -34,6 +34,7 @@ export const PrintTemplateMucInKhoaMotNam = React.forwardRef((props, ref) => {
               <th>319</th>
               <th>78A</th>
               <th>12A</th>
+              <th>17A</th>
               <th>052</th>
               <th>003 (Đen)</th>
               <th>003 (Vàng)</th>
@@ -63,6 +64,7 @@ export const PrintTemplateMucInKhoaMotNam = React.forwardRef((props, ref) => {
                       <td>{item.bamotchin}</td>
                       <td>{item.baytamA}</td>
                       <td>{item.muoihaiA}</td>
+                      <td>{item.muoibayA}</td>
                       <td>{item.khongnamhai}</td>
                       <td>{item.khongkhongbaden}</td>
                       <td>{item.khongkhongbavang}</td>

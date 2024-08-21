@@ -279,6 +279,7 @@ const Thongke = (props) => {
             "052": "khongnamhai",
             319: "bamotchin",
             "12A": "muoihaiA",
+            "17A": "muoibayA",
             "003 (Đen)": "khongkhongbaden",
             "003 (Vàng)": "khongkhongbavang",
             "003 (Hồng)": "khongkhongbahong",
@@ -404,6 +405,7 @@ const Thongke = (props) => {
         "Mực 319": rowData[i].bamotchin,
         "Mực 78A": rowData[i].baytamA,
         "Mực 12A": rowData[i].muoihaiA,
+        "Mực 17A": rowData[i].muoibayA,
         "Mực 052": rowData[i].khongnamhai,
         "Mực 003 (Đen)": rowData[i].khongkhongbaden,
         "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
@@ -457,6 +459,7 @@ const Thongke = (props) => {
         "Mực 319": rowData[i].bamotchin,
         "Mực 78A": rowData[i].baytamA,
         "Mực 12A": rowData[i].muoihaiA,
+        "Mực 17A": rowData[i].muoibayA,
         "Mực 052": rowData[i].khongnamhai,
         "Mực 003 (Đen)": rowData[i].khongkhongbaden,
         "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
@@ -751,6 +754,11 @@ const Thongke = (props) => {
         size: 80,
       },
       {
+        accessorKey: "muoibayA",
+        header: "17A",
+        size: 80,
+      },
+      {
         accessorKey: "khongnamhai",
         header: "052",
         size: 80,
@@ -1015,12 +1023,16 @@ const Thongke = (props) => {
               Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>
             </button>
           </Link>
-          <button type="button" className="btn btn-success me-2">
-            Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
-          </button>
-          <button type="button" className="btn btn-danger me-2">
-            Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
-          </button>
+          <Link to="/danhsachmucindanhap">
+            <button type="button" className="btn btn-success me-2">
+              Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
+            </button>
+          </Link>
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
         </div>
         <h4 className="text-center mt-5 mb-5">
           <span>
