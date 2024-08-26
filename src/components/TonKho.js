@@ -349,11 +349,27 @@ const TonKho = (props) => {
             </button>
           </Link>
 
-          <Link to="/thongke">
-            <button type="button" className="btn btn-primary me-2">
+          <div className="dropdown mt-2">
+            <button
+              type="button"
+              className="btn btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
               Thống kê
             </button>
-          </Link>
+            <ul class="dropdown-menu">
+              <li>
+                <Link className="dropdown-item" to={"/thongkenhap"}>
+                  Thống kê nhập
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to={"/thongkexuat"}>
+                  Thống kê xuất
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH TỒN KHO</h4>
         <div className="mb-3">

@@ -435,6 +435,13 @@ const InkManager = (props) => {
       });
     } else {
       if (currentPhieu?.trangthai === "Đã duyệt") {
+        let danhsachmucinnhapkho = currentPhieu?.danhsachmucincuaphieu;
+
+        danhsachmucinnhapkho = danhsachmucinnhapkho.map((item) => ({
+          ...item,
+          thoigiannhap: "",
+        }));
+
         let updateDataDaDuyet = {
           danhsachphieu: {
             loaiphieu: currentPhieu?.loaiphieu,
@@ -451,7 +458,7 @@ const InkManager = (props) => {
                 ? "Chưa duyệt"
                 : "Đã xuất",
             ngayduyetphieu: "",
-            danhsachmucincuaphieu: currentPhieu?.danhsachmucincuaphieu,
+            danhsachmucincuaphieu: danhsachmucinnhapkho,
           },
           danhsachtonkho: {},
         };
@@ -496,6 +503,13 @@ const InkManager = (props) => {
 
         let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 
+        let danhsachmucinnhapkho = currentPhieu?.danhsachmucincuaphieu;
+
+        danhsachmucinnhapkho = danhsachmucinnhapkho.map((item) => ({
+          ...item,
+          thoigiannhap: currentTime,
+        }));
+
         let updateDataChuaDuyet = {
           danhsachphieu: {
             loaiphieu: currentPhieu?.loaiphieu,
@@ -510,7 +524,7 @@ const InkManager = (props) => {
             trangthai:
               currentPhieu?.loaiphieu === "Phiếu nhập" ? "Đã duyệt" : "Đã xuất",
             ngayduyetphieu: currentTime,
-            danhsachmucincuaphieu: currentPhieu?.danhsachmucincuaphieu,
+            danhsachmucincuaphieu: danhsachmucinnhapkho,
           },
           danhsachtonkho: {
             danhsachmucinthemvaokho: currentPhieu?.danhsachmucincuaphieu,
@@ -757,11 +771,28 @@ const InkManager = (props) => {
               Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
             </button>
           </Link>
-          <Link to="/thongke">
-            <button type="button" className="btn btn-primary me-2">
+          <div className="dropdown me-2">
+            <button
+              type="button"
+              className="btn btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
               Thống kê
             </button>
-          </Link>
+            <ul class="dropdown-menu">
+              <li>
+                <Link className="dropdown-item" to={"/thongkenhap"}>
+                  Thống kê nhập
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to={"/thongkexuat"}>
+                  Thống kê xuất
+                </Link>
+              </li>
+            </ul>
+          </div>
+
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />

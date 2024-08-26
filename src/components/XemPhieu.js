@@ -50,6 +50,49 @@ const XemPhieu = (props) => {
     }
   }, []);
 
+  const grouped = {};
+
+  // Duyệt qua từng phần tử trong mảng ban đầu
+  for (let i = 0; i < data.length; i++) {
+    const qrCode = data[i].qrcode;
+    const prefix =
+      qrCode === "8885007027876"
+        ? "003 (Đen)"
+        : qrCode === "8906049013198"
+        ? "003 (Vàng)"
+        : qrCode === "8885007027913"
+        ? "003 (Hồng)"
+        : qrCode === "8906049013174"
+        ? "003 (Xanh)"
+        : qrCode === "8885007020259"
+        ? "664 (Hồng)"
+        : qrCode === "8885007020242"
+        ? "664 (Xanh)"
+        : qrCode === "8885007020266"
+        ? "664 (Vàng)"
+        : qrCode === "8885007020235"
+        ? "664 (Đen)"
+        : qrCode === "8885007028255"
+        ? "005 (Đen)"
+        : qrCode === "8885007023441"
+        ? "774 (Đen)"
+        : qrCode.substring(0, 3); // Lấy ba ký tự đầu của mã QR
+
+    // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
+    if (grouped[prefix]) {
+      grouped[prefix] += data[i].soluong;
+    } else {
+      // Nếu chưa có nhóm này, khởi tạo với số lượng hiện tại
+      grouped[prefix] = data[i].soluong;
+    }
+  }
+
+  // Chuyển đổi đối tượng thành mảng kết quả
+  const result = [];
+  for (const prefix in grouped) {
+    result.push({ qrcode: prefix, soluong: grouped[prefix] });
+  }
+
   const columns = useMemo(
     () => [
       {
@@ -77,7 +120,7 @@ const XemPhieu = (props) => {
 
   const table = useMaterialReactTable({
     columns,
-    data,
+    data: result,
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
