@@ -146,7 +146,7 @@ const XemPhieu = (props) => {
       </Helmet>
       <div className="container">
         <div className="text-center mt-5">
-          <img src="../../img/logo2.png" alt="" />
+          <img src="../../../../../../../../img/logo2.png" alt="" />
         </div>
         <div className="mt-2 mb-3">
           <Link to="/danhsachphieu">

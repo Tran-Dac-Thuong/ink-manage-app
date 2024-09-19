@@ -29,7 +29,7 @@ const CreatePhieu = (props) => {
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
   const [khoaPhong, setKhoaPhong] = useState([]);
-
+  const [role, setRole] = useState("");
   const [chonPhieu, setChonPhieu] = useState(false);
 
   const [api, contextHolder] = notification.useNotification();
@@ -89,14 +89,21 @@ const CreatePhieu = (props) => {
 
   useEffect(() => {
     const fetchDataKhoaPhong = async () => {
-      let res = await axios.get("http://172.16.0.61/api_ds_khoa_phong");
-      if (res && res.data) {
-        let khoaphongArr = [];
-        let dataKhoaphong = res?.data;
-        for (let i = 0; i < dataKhoaphong.length; i++) {
-          khoaphongArr.push(dataKhoaphong[i].TENGOIKHOAPHONG);
+      try {
+        let res = await axios.get("http://172.16.0.61/api_ds_khoa_phong");
+        if (res && res.data) {
+          let khoaphongArr = [];
+          let dataKhoaphong = res?.data;
+          for (let i = 0; i < dataKhoaphong.length; i++) {
+            khoaphongArr.push(dataKhoaphong[i].TENGOIKHOAPHONG);
+          }
+          setKhoaPhong(khoaphongArr);
         }
-        setKhoaPhong(khoaphongArr);
+      } catch (error) {
+        api["error"]({
+          message: "Thất bại",
+          description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        });
       }
     };
     fetchDataKhoaPhong();
@@ -200,8 +207,13 @@ const CreatePhieu = (props) => {
             decodeData?.content?.danhsachphieu?.khoaphongxuatmuc;
           const decodedDanhsachmucincuaphieu =
             decodeData?.content?.danhsachphieu?.danhsachmucincuaphieu;
-
+          const decodedNguoiduyetphieu =
+            decodeData?.content?.danhsachphieu?.nguoiduyetphieu;
+          const decodedNgayduyetphieu =
+            decodeData?.content?.danhsachphieu?.ngayduyetphieu;
           const decodedTenphieu = decodeData?.content?.danhsachphieu?.tenphieu;
+          const decodedThoigianxuat =
+            decodeData?.content?.danhsachphieu?.thoigianxuat;
 
           const insertDataPhieu = {
             stt: i + 1,
@@ -212,7 +224,10 @@ const CreatePhieu = (props) => {
             trangthai: decodedTrangthai,
             tenphieu: decodedTenphieu,
             nguoitaophieu: decodedNguoiTaoPhieu,
+            nguoiduyetphieu: decodedNguoiduyetphieu,
+            ngayduyetphieu: decodedNgayduyetphieu,
             khoaphongxuatmuc: decodedKhoaphong,
+            thoigianxuat: decodedThoigianxuat,
             danhsachmucincuaphieu: decodedDanhsachmucincuaphieu,
           };
           resultArray.push(insertDataPhieu);
@@ -320,59 +335,73 @@ const CreatePhieu = (props) => {
   };
 
   const handleExportRowsExcel = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Mã số phiếu": rowData[i].sophieu,
-        "Loại phiếu": rowData[i].loaiphieu,
-        "Ngày tạo phiếu": rowData[i].ngaytaophieu,
-        "Trạng thái": rowData[i].trangthai,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          STT: rows[i].index + 1,
+          "Mã số phiếu": rowData[i].sophieu,
+          "Loại phiếu": rowData[i].loaiphieu,
+          "Ngày tạo phiếu": rowData[i].ngaytaophieu,
+          "Trạng thái": rowData[i].trangthai,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách các phiếu đã tạo");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "danhsachphieudatao.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách các phiếu đã tạo");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "danhsachphieudatao.xlsx");
   };
 
   const handleExportRowsPDF = (rows) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Thêm font vào PDF
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
+      // Thêm font vào PDF
+      doc.addFont(fontPath, "Roboto", "normal");
+      doc.setFont("Roboto");
 
-    const tableData = rows.map((row) => Object.values(row.original));
-    const tableHeaders = columns.map((c) => c.header);
+      const tableData = rows.map((row) => Object.values(row.original));
+      const tableHeaders = columns.map((c) => c.header);
 
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: tableData,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: tableData,
+        styles: { font: "Roboto", fontStyle: "normal" },
+      });
 
-    doc.save("danhsachphieudatao.pdf");
+      doc.save("danhsachphieudatao.pdf");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
+      });
+    }
   };
 
   const columns = useMemo(
@@ -561,6 +590,33 @@ const CreatePhieu = (props) => {
         ) : (
           <></>
         )}
+        {row.original.loaiphieu === "Phiếu xuất" &&
+        row.original.trangthai === "Đã xuất" ? (
+          <Link
+            to={`/xemphieu/${row.original.sophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/${row.original.thoigianxuat}/${row.original.tenphieu}`}
+            state={{
+              dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+              khoaphong: row.original.khoaphongxuatmuc,
+            }}
+          >
+            <Button type="primary">Xem</Button>
+          </Link>
+        ) : (
+          <></>
+        )}
+        {row.original.loaiphieu === "Phiếu nhập" &&
+        row.original.trangthai === "Đã duyệt" ? (
+          <Link
+            to={`/xemphieu/${row.original.sophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/${row.original.nguoiduyetphieu}/${row.original.ngayduyetphieu}/none/${row.original.tenphieu}`}
+            state={{
+              dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+            }}
+          >
+            <Button type="primary">Xem</Button>
+          </Link>
+        ) : (
+          <></>
+        )}
       </Box>
     ),
     positionActionsColumn: "last",
@@ -603,6 +659,24 @@ const CreatePhieu = (props) => {
     ),
   });
 
+  const getRole = async () => {
+    try {
+      let decodeToken = await decodeJWT(
+        localStorage.getItem("token"),
+        secretKey
+      );
+
+      setRole(decodeToken.role);
+    } catch (error) {
+      api["error"]({
+        message: "Lỗi",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+      });
+    }
+  };
+
+  getRole();
+
   return (
     <>
       {contextHolder}
@@ -630,87 +704,133 @@ const CreatePhieu = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          <Link to="/danhsachmucindaxuat">
-            <button type="button" className="btn btn-danger me-2">
-              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
-            </button>
-          </Link>
-          <div className="dropdown mt-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <h4 className="text-center mt-5 mb-5">TẠO PHIẾU</h4>
-
-        <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
-          <Form.Item
-            name="chonloaiphieu"
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng chọn loại phiếu",
-              },
-            ]}
-          >
-            <Select
-              showSearch
-              placeholder="Chọn phiếu"
-              allowClear
-              style={{ width: "100%" }}
-              onSelect={(event) => handleSelect(event)}
-            >
-              {dataLoaiPhieu.map((item, index) => {
-                return <Option value={item}>{item}</Option>;
-              })}
-            </Select>
-          </Form.Item>
-          {chonPhieu ? (
-            <Form.Item
-              name="chonkhoaphong"
-              rules={[
-                {
-                  required: true,
-                  message: "Vui lòng chọn khoa phòng",
-                },
-              ]}
-            >
-              <Select
-                showSearch
-                placeholder="Chọn khoa phòng"
-                allowClear
-                style={{ width: "100%" }}
-              >
-                {khoaPhong.map((item, index) => {
-                  return <Option value={item}>{item}</Option>;
-                })}
-              </Select>
-            </Form.Item>
+          {role === "Người duyệt" ? (
+            <>
+              {" "}
+              <Link to="/danhsachmucindaxuat">
+                <button type="button" className="btn btn-danger me-2">
+                  Đã xuất{" "}
+                  <span class="badge bg-success">{dataDaXuat.length}</span>
+                </button>
+              </Link>
+            </>
           ) : (
             <></>
           )}
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Tạo phiếu
-            </Button>
-          </Form.Item>
-        </Form>
+          {role === "Người duyệt" ? (
+            <>
+              <div className="dropdown mt-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
+        <h4 className="text-center mt-5 mb-5">TẠO PHIẾU</h4>
+        {role === "Người nhập không xuất" ? (
+          <>
+            <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
+              <Form.Item
+                name="chonloaiphieu"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn loại phiếu",
+                  },
+                ]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Chọn phiếu"
+                  allowClear
+                  style={{ width: "100%" }}
+                >
+                  <Option value="Phiếu nhập">Phiếu nhập</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Tạo phiếu
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        ) : (
+          <>
+            <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
+              <Form.Item
+                name="chonloaiphieu"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn loại phiếu",
+                  },
+                ]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Chọn phiếu"
+                  allowClear
+                  style={{ width: "100%" }}
+                  onSelect={(event) => handleSelect(event)}
+                >
+                  {dataLoaiPhieu.map((item, index) => {
+                    return <Option value={item}>{item}</Option>;
+                  })}
+                </Select>
+              </Form.Item>
+              {chonPhieu ? (
+                <Form.Item
+                  name="chonkhoaphong"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng chọn khoa phòng",
+                    },
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Chọn khoa phòng"
+                    allowClear
+                    style={{ width: "100%" }}
+                  >
+                    {khoaPhong.map((item, index) => {
+                      return <Option value={item}>{item}</Option>;
+                    })}
+                  </Select>
+                </Form.Item>
+              ) : (
+                <></>
+              )}
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Tạo phiếu
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        )}
 
         <div className="d-flex justify-content-between">
           <h5 className="mt-1">CÁC PHIẾU ĐÃ TẠO </h5>

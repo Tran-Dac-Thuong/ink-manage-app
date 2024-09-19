@@ -766,33 +766,47 @@ const InkManager = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          <Link to="/danhsachmucindaxuat">
-            <button type="button" className="btn btn-danger me-2">
-              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
-            </button>
-          </Link>
-          <div className="dropdown me-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {role === "Người duyệt" ? (
+            <>
+              {" "}
+              <Link to="/danhsachmucindaxuat">
+                <button type="button" className="btn btn-danger me-2">
+                  Đã xuất{" "}
+                  <span class="badge bg-success">{dataDaXuat.length}</span>
+                </button>
+              </Link>
+            </>
+          ) : (
+            <></>
+          )}
 
+          {role === "Người duyệt" ? (
+            <>
+              <div className="dropdown me-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />

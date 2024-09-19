@@ -343,111 +343,121 @@ const ThongKeNhap = (props) => {
   }, []);
 
   const handleExportRowsExcelMucInDaNhapMotThang = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        "Tổng cộng": rowData[i].tongSo,
-        "Mực 276": rowData[i].haibaysau,
-        "Mực 337": rowData[i].bababay,
-        "Mực 49A": rowData[i].bonchinA,
-        "Mực 319": rowData[i].bamotchin,
-        "Mực 78A": rowData[i].baytamA,
-        "Mực 12A": rowData[i].muoihaiA,
-        "Mực 17A": rowData[i].muoibayA,
-        "Mực 052": rowData[i].khongnamhai,
-        "Mực 003 (Đen)": rowData[i].khongkhongbaden,
-        "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
-        "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
-        "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
-        "Mực 664 (Đen)": rowData[i].sausaubonden,
-        "Mực 664 (Vàng)": rowData[i].sausaubonvang,
-        "Mực 664 (Hồng)": rowData[i].sausaubonhong,
-        "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
-        "Mực 005 (Đen)": rowData[i].khongkhongnamden,
-        "Mực 774 (Đen)": rowData[i].baybaybonden,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          "Tổng cộng": rowData[i].tongSo,
+          "Mực 276": rowData[i].haibaysau,
+          "Mực 337": rowData[i].bababay,
+          "Mực 49A": rowData[i].bonchinA,
+          "Mực 319": rowData[i].bamotchin,
+          "Mực 78A": rowData[i].baytamA,
+          "Mực 12A": rowData[i].muoihaiA,
+          "Mực 17A": rowData[i].muoibayA,
+          "Mực 052": rowData[i].khongnamhai,
+          "Mực 003 (Đen)": rowData[i].khongkhongbaden,
+          "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
+          "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
+          "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
+          "Mực 664 (Đen)": rowData[i].sausaubonden,
+          "Mực 664 (Vàng)": rowData[i].sausaubonvang,
+          "Mực 664 (Hồng)": rowData[i].sausaubonhong,
+          "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
+          "Mực 005 (Đen)": rowData[i].khongkhongnamden,
+          "Mực 774 (Đen)": rowData[i].baybaybonden,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Mực in đã nhập trong 1 tháng");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "thongkemucindanhaptrongmotthang.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(
-      wb,
-      ws,
-      "Thống kê mực in đã nhập trong 1 tháng"
-    );
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "thongkemucindanhaptrongmotthang.xlsx");
   };
 
   const handleExportRowsExcelMucInDaNhapMotNam = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        "Tổng cộng": rowData[i].tongSo,
-        "Mực 276": rowData[i].haibaysau,
-        "Mực 337": rowData[i].bababay,
-        "Mực 49A": rowData[i].bonchinA,
-        "Mực 319": rowData[i].bamotchin,
-        "Mực 78A": rowData[i].baytamA,
-        "Mực 12A": rowData[i].muoihaiA,
-        "Mực 17A": rowData[i].muoibayA,
-        "Mực 052": rowData[i].khongnamhai,
-        "Mực 003 (Đen)": rowData[i].khongkhongbaden,
-        "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
-        "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
-        "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
-        "Mực 664 (Đen)": rowData[i].sausaubonden,
-        "Mực 664 (Vàng)": rowData[i].sausaubonvang,
-        "Mực 664 (Hồng)": rowData[i].sausaubonhong,
-        "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
-        "Mực 005 (Đen)": rowData[i].khongkhongnamden,
-        "Mực 774 (Đen)": rowData[i].baybaybonden,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          "Tổng cộng": rowData[i].tongSo,
+          "Mực 276": rowData[i].haibaysau,
+          "Mực 337": rowData[i].bababay,
+          "Mực 49A": rowData[i].bonchinA,
+          "Mực 319": rowData[i].bamotchin,
+          "Mực 78A": rowData[i].baytamA,
+          "Mực 12A": rowData[i].muoihaiA,
+          "Mực 17A": rowData[i].muoibayA,
+          "Mực 052": rowData[i].khongnamhai,
+          "Mực 003 (Đen)": rowData[i].khongkhongbaden,
+          "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
+          "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
+          "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
+          "Mực 664 (Đen)": rowData[i].sausaubonden,
+          "Mực 664 (Vàng)": rowData[i].sausaubonvang,
+          "Mực 664 (Hồng)": rowData[i].sausaubonhong,
+          "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
+          "Mực 005 (Đen)": rowData[i].khongkhongnamden,
+          "Mực 774 (Đen)": rowData[i].baybaybonden,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Mực in đã nhập trong 1 năm");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "thongkemucindanhaptrongmotnam.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Thống kê mực in đã nhập trong 1 năm");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "thongkemucindanhaptrongmotnam.xlsx");
   };
 
   const columnsNhapMucIn = useMemo(

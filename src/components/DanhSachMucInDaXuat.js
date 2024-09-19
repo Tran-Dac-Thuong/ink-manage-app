@@ -26,6 +26,7 @@ const DanhSachMucInDaXuat = (props) => {
   const [loadingDanhSachDaXuat, setLoadingDanhSachDaXuat] = useState(true);
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
+  const [role, setRole] = useState("");
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -174,72 +175,86 @@ const DanhSachMucInDaXuat = (props) => {
   }, []);
 
   const handleExportRowsExcel = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Mã QRCode": rowData[i].qrcode,
-        "Tên mực": rowData[i].tenmuc,
-        "Mã mực": rowData[i].mamuc,
-        "Số lượng": rowData[i].soluong,
-        "Tên phiếu": rowData[i].tenphieu,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          STT: rows[i].index + 1,
+          "Mã QRCode": rowData[i].qrcode,
+          "Tên mực": rowData[i].tenmuc,
+          "Mã mực": rowData[i].mamuc,
+          "Số lượng": rowData[i].soluong,
+          "Tên phiếu": rowData[i].tenphieu,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in đã xuất");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "danhsachmucindaxuat.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in đã xuất");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "danhsachmucindaxuat.xlsx");
   };
 
   const handleExportRowsPDF = (rows) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Thêm font vào PDF
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
+      // Thêm font vào PDF
+      doc.addFont(fontPath, "Roboto", "normal");
+      doc.setFont("Roboto");
 
-    const tableData = rows.map((row) => Object.values(row.original));
+      const tableData = rows.map((row) => Object.values(row.original));
 
-    const tableHeaders = columns.map((c) => c.header);
+      const tableHeaders = columns.map((c) => c.header);
 
-    let rearrangedArray = tableData.map((arr) => [
-      arr[9],
-      arr[0],
-      arr[1],
-      arr[5],
-      arr[2],
-      arr[6],
-      arr[3],
-      arr[4],
-    ]);
+      let rearrangedArray = tableData.map((arr) => [
+        arr[9],
+        arr[0],
+        arr[1],
+        arr[5],
+        arr[2],
+        arr[6],
+        arr[3],
+        arr[4],
+      ]);
 
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: rearrangedArray,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: rearrangedArray,
+        styles: { font: "Roboto", fontStyle: "normal" },
+      });
 
-    doc.save("danhsachmucindaxuat.pdf");
+      doc.save("danhsachmucindaxuat.pdf");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
+      });
+    }
   };
 
   const columns = useMemo(
@@ -323,6 +338,24 @@ const DanhSachMucInDaXuat = (props) => {
     ),
   });
 
+  const getRole = async () => {
+    try {
+      let decodeToken = await decodeJWT(
+        localStorage.getItem("token"),
+        secretKey
+      );
+
+      setRole(decodeToken.role);
+    } catch (error) {
+      api["error"]({
+        message: "Lỗi",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+      });
+    }
+  };
+
+  getRole();
+
   return (
     <>
       {contextHolder}
@@ -351,28 +384,33 @@ const DanhSachMucInDaXuat = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-
-          <div className="dropdown mt-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {role === "Người duyệt" ? (
+            <>
+              <div className="dropdown mt-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH MỰC IN ĐÃ XUẤT</h4>
         <div className="mb-3">

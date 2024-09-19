@@ -39,6 +39,8 @@ const NhapMuc = (props) => {
 
   const [rowSelection, setRowSelection] = useState({});
 
+  const [role, setRole] = useState("");
+
   const navigate = useNavigate();
 
   const [form] = Form.useForm();
@@ -571,53 +573,67 @@ const NhapMuc = (props) => {
   };
 
   const handleExportRowsExcel = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Mã QRCode": rowData[i].qrcode,
-        "Tên mực": rowData[i].tenmuc,
-        "Mã mực": rowData[i].mamuc,
-        "Số lượng": rowData[i].soluong,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          STT: rows[i].index + 1,
+          "Mã QRCode": rowData[i].qrcode,
+          "Tên mực": rowData[i].tenmuc,
+          "Mã mực": rowData[i].mamuc,
+          "Số lượng": rowData[i].soluong,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+
+      const wb = XLSX.utils.book_new();
+
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách nhập mực");
+
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      saveAs(blob, "danhsachnhapmuc.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-
-    const wb = XLSX.utils.book_new();
-
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách nhập mực");
-
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    saveAs(blob, "danhsachnhapmuc.xlsx");
   };
 
   const handleExportRowsPDF = (rows) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
+      doc.addFont(fontPath, "Roboto", "normal");
+      doc.setFont("Roboto");
 
-    const tableData = rows.map((row) => Object.values(row.original));
-    const tableHeaders = columns.map((c) => c.header);
+      const tableData = rows.map((row) => Object.values(row.original));
+      const tableHeaders = columns.map((c) => c.header);
 
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: tableData,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: tableData,
+        styles: { font: "Roboto", fontStyle: "normal" },
+      });
 
-    doc.save("danhsachnhapmuc.pdf");
+      doc.save("danhsachnhapmuc.pdf");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
+      });
+    }
   };
 
   const columns = useMemo(
@@ -756,6 +772,24 @@ const NhapMuc = (props) => {
     },
   });
 
+  const getRole = async () => {
+    try {
+      let decodeToken = await decodeJWT(
+        localStorage.getItem("token"),
+        secretKey
+      );
+
+      setRole(decodeToken.role);
+    } catch (error) {
+      api["error"]({
+        message: "Lỗi",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+      });
+    }
+  };
+
+  getRole();
+
   return (
     <>
       {contextHolder}
@@ -784,32 +818,46 @@ const NhapMuc = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          <Link to="/danhsachmucindaxuat">
-            <button type="button" className="btn btn-danger me-2">
-              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
-            </button>
-          </Link>
-          <div className="dropdown mt-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {role === "Người duyệt" ? (
+            <>
+              {" "}
+              <Link to="/danhsachmucindaxuat">
+                <button type="button" className="btn btn-danger me-2">
+                  Đã xuất{" "}
+                  <span class="badge bg-success">{dataDaXuat.length}</span>
+                </button>
+              </Link>
+            </>
+          ) : (
+            <></>
+          )}
+          {role === "Người duyệt" ? (
+            <>
+              <div className="dropdown mt-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
         </div>
         <h4 className="text-center mt-5">THÊM MỚI MỰC IN CHO SỐ PHIẾU</h4>
         <h4 className="text-center text-danger mb-5">{dataPhieu?.sophieu}</h4>

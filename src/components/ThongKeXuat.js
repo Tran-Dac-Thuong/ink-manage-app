@@ -518,146 +518,174 @@ const ThongKeXuat = (props) => {
   };
 
   const handleExportRowsExcelOneMonth = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Tên mực": rowData[i].tenmuc,
-        "Mã mực": rowData[i].mamuc,
-        "Mã QRCode": rowData[i].qrcode,
-        "Tên phiếu": rowData[i].tenphieu,
-        "Số lượng": rowData[i].soluong,
-        "Xuất cho": rowData[i].khoaphongxuatmuc,
-        "Đã xuất vào lúc": rowData[i].thoigianxuat,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          STT: rows[i].index + 1,
+          "Tên mực": rowData[i].tenmuc,
+          "Mã mực": rowData[i].mamuc,
+          "Mã QRCode": rowData[i].qrcode,
+          "Tên phiếu": rowData[i].tenphieu,
+          "Số lượng": rowData[i].soluong,
+          "Xuất cho": rowData[i].khoaphongxuatmuc,
+          "Đã xuất vào lúc": rowData[i].thoigianxuat,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "danhsachmucincackhoadadoitrongmotthangqua.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "danhsachmucincackhoadadoitrongmotthangqua.xlsx");
   };
 
   const handleExportRowsPDFOneMonth = (rows) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Thêm font vào PDF
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
+      // Thêm font vào PDF
+      doc.addFont(fontPath, "Roboto", "normal");
+      doc.setFont("Roboto");
 
-    const tableData = rows.map((row) => Object.values(row.original));
+      const tableData = rows.map((row) => Object.values(row.original));
 
-    const tableHeaders = columns.map((c) => c.header);
+      const tableHeaders = columns.map((c) => c.header);
 
-    let rearrangedArray = tableData.map((arr) => [
-      arr[9],
-      arr[0],
-      arr[1],
-      arr[3],
-      arr[5],
-      arr[2],
-      arr[8],
-      arr[7],
-    ]);
+      let rearrangedArray = tableData.map((arr) => [
+        arr[9],
+        arr[0],
+        arr[1],
+        arr[3],
+        arr[5],
+        arr[2],
+        arr[8],
+        arr[7],
+      ]);
 
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: rearrangedArray,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: rearrangedArray,
+        styles: { font: "Roboto", fontStyle: "normal" },
+      });
 
-    doc.save("danhsachmucincackhoadadoitrongmotthangqua.pdf");
+      doc.save("danhsachmucincackhoadadoitrongmotthangqua.pdf");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
+      });
+    }
   };
 
   const handleExportRowsExcelOneYear = (rows) => {
-    const rowData = rows.map((row) => row.original);
+    try {
+      const rowData = rows.map((row) => row.original);
 
-    let configDataArr = [];
+      let configDataArr = [];
 
-    for (let i = 0; i < rowData.length; i++) {
-      let configData = {
-        STT: rows[i].index + 1,
-        "Tên mực": rowData[i].tenmuc,
-        "Mã mực": rowData[i].mamuc,
-        "Mã QRCode": rowData[i].qrcode,
-        "Tên phiếu": rowData[i].tenphieu,
-        "Số lượng": rowData[i].soluong,
-        "Xuất cho": rowData[i].khoaphongxuatmuc,
-        "Đã xuất vào lúc": rowData[i].thoigianxuat,
-      };
+      for (let i = 0; i < rowData.length; i++) {
+        let configData = {
+          STT: rows[i].index + 1,
+          "Tên mực": rowData[i].tenmuc,
+          "Mã mực": rowData[i].mamuc,
+          "Mã QRCode": rowData[i].qrcode,
+          "Tên phiếu": rowData[i].tenphieu,
+          "Số lượng": rowData[i].soluong,
+          "Xuất cho": rowData[i].khoaphongxuatmuc,
+          "Đã xuất vào lúc": rowData[i].thoigianxuat,
+        };
 
-      configDataArr.push(configData);
+        configDataArr.push(configData);
+      }
+      // Tạo một workbook mới
+      const wb = XLSX.utils.book_new();
+
+      // Chuyển đổi dữ liệu thành worksheet
+      const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in");
+
+      // Tạo buffer
+      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+      // Chuyển buffer thành Blob
+      const blob = new Blob([excelBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      });
+
+      // Lưu file
+      saveAs(blob, "danhsachmucincackhoadadoitrongmotnamqua.xlsx");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+      });
     }
-    // Tạo một workbook mới
-    const wb = XLSX.utils.book_new();
-
-    // Chuyển đổi dữ liệu thành worksheet
-    const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-    // Thêm worksheet vào workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách mực in");
-
-    // Tạo buffer
-    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-    // Chuyển buffer thành Blob
-    const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-    });
-
-    // Lưu file
-    saveAs(blob, "danhsachmucincackhoadadoitrongmotnamqua.xlsx");
   };
 
   const handleExportRowsPDFOneYear = (rows) => {
-    const doc = new jsPDF();
+    try {
+      const doc = new jsPDF();
 
-    // Thêm font vào PDF
-    doc.addFont(fontPath, "Roboto", "normal");
-    doc.setFont("Roboto");
+      // Thêm font vào PDF
+      doc.addFont(fontPath, "Roboto", "normal");
+      doc.setFont("Roboto");
 
-    const tableData = rows.map((row) => Object.values(row.original));
+      const tableData = rows.map((row) => Object.values(row.original));
 
-    const tableHeaders = columns.map((c) => c.header);
+      const tableHeaders = columns.map((c) => c.header);
 
-    let rearrangedArray = tableData.map((arr) => [
-      arr[9],
-      arr[0],
-      arr[1],
-      arr[3],
-      arr[5],
-      arr[2],
-      arr[8],
-      arr[7],
-      arr[4],
-    ]);
+      let rearrangedArray = tableData.map((arr) => [
+        arr[9],
+        arr[0],
+        arr[1],
+        arr[3],
+        arr[5],
+        arr[2],
+        arr[8],
+        arr[7],
+        arr[4],
+      ]);
 
-    autoTable(doc, {
-      head: [tableHeaders],
-      body: rearrangedArray,
-      styles: { font: "Roboto", fontStyle: "normal" },
-    });
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: rearrangedArray,
+        styles: { font: "Roboto", fontStyle: "normal" },
+      });
 
-    doc.save("danhsachmucincackhoadadoitrongmotnamqua.pdf");
+      doc.save("danhsachmucincackhoadadoitrongmotnamqua.pdf");
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
+      });
+    }
   };
 
   const columns = useMemo(

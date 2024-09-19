@@ -1,13 +1,17 @@
-import React, { useEffect } from "react";
-import { Button, Form, Input, notification, Space } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Form, Input, notification, Select, Space } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import * as jose from "jose";
 import { Helmet } from "react-helmet";
+import axios from "axios";
+import { Option } from "antd/es/mentions";
 
 const DangNhap = (props) => {
   const [form] = Form.useForm();
 
   const [api, contextHolder] = notification.useNotification();
+
+  const [dataNhanVien, setDataNhanVien] = useState([]);
 
   const navigate = useNavigate();
 
@@ -49,6 +53,28 @@ const DangNhap = (props) => {
   };
 
   useEffect(() => {
+    const fetchDataNhanVien = async () => {
+      try {
+        let res = await axios.get("http://172.16.0.53:8080/danh_sach_cntt");
+        if (res && res.data) {
+          // Thay thế NaN bằng null
+          res.data = res.data.replace(/: NaN/g, ": null");
+
+          setDataNhanVien(JSON.parse(res.data));
+        }
+      } catch (error) {
+        console.log(error);
+
+        api["error"]({
+          message: "Thất bại",
+          description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        });
+      }
+    };
+    fetchDataNhanVien();
+  }, []);
+
+  useEffect(() => {
     props.setProgress(100);
   }, []);
 
@@ -67,51 +93,52 @@ const DangNhap = (props) => {
   }, []);
 
   const handleDangNhap = async (values) => {
-    if (values.tendangnhap === "thuongduyet" && values.matkhau === "123") {
-      let dataLoginDuyet = {
-        username: values.tendangnhap,
-        password: values.matkhau,
-        role: "Người duyệt",
-        hovaten: "Trần Đắc Thương Duyệt",
-      };
-      try {
-        let jwtToken = await encodeDataToJWT(dataLoginDuyet, secretKey);
+    try {
+      if (values.chonnhanvien === "Thầu" && values.matkhau === "123") {
+        let dataLogin = {
+          username: values.chonnhanvien,
 
+          role: "Người nhập không xuất",
+          hovaten: values.chonnhanvien,
+        };
+        let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
         localStorage.setItem("token", jwtToken);
-
         navigate("/");
-      } catch (error) {
-        api["error"]({
-          message: "Thất bại",
-          description: "Đã xảy ra lỗi trong quá trình đăng nhập",
-        });
-      }
-    } else if (
-      values.tendangnhap === "thuongnhapxuat" &&
-      values.matkhau === "123"
-    ) {
-      let dataLoginNhapXuat = {
-        username: values.tendangnhap,
-        password: values.matkhau,
-        role: "Người nhập xuất",
-        hovaten: "Trần Đắc Thương Tạo Phiếu",
-      };
-      try {
-        let jwtToken = await encodeDataToJWT(dataLoginNhapXuat, secretKey);
+      } else if (
+        values.chonnhanvien === "Nguyễn Văn Hữu" &&
+        values.matkhau === "123"
+      ) {
+        let dataLogin = {
+          username: values.chonnhanvien,
 
+          role: "Người nhập",
+          hovaten: values.chonnhanvien,
+        };
+        let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
         localStorage.setItem("token", jwtToken);
-
         navigate("/");
-      } catch (error) {
-        api["error"]({
-          message: "Thất bại",
-          description: "Đã xảy ra lỗi trong quá trình đăng nhập",
+      } else {
+        let res = await axios.post("http://172.16.0.53:8080/api/auth/login", {
+          username: values.chonnhanvien,
+          password: values.matkhau,
         });
+        if (res && res.data) {
+          let dataLogin = {
+            username: values.chonnhanvien,
+
+            role: "Người duyệt",
+            hovaten: values.chonnhanvien,
+          };
+
+          let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
+          localStorage.setItem("token", jwtToken);
+          navigate("/");
+        }
       }
-    } else {
+    } catch (error) {
       api["error"]({
         message: "Thất bại",
-        description: "Tên đăng nhập hoặc mật khẩu không chính xác",
+        description: "Đã xảy ra lỗi trong quá trình đăng nhập",
       });
     }
   };
@@ -133,7 +160,7 @@ const DangNhap = (props) => {
         </div>
 
         <h4 className="text-center mt-5 mb-5">
-          ĐĂNG NHẬP HỆ THỐNG QUẢN LÝ MỰC IN
+          ĐĂNG NHẬP PHẦN MỀM QUẢN LÝ MỰC IN
         </h4>
 
         <Form
@@ -151,21 +178,27 @@ const DangNhap = (props) => {
           onFinish={handleDangNhap}
         >
           <Form.Item
-            label="Tên đăng nhập"
-            name="tendangnhap"
+            label="Tên nhân viên"
+            name="chonnhanvien"
             rules={[
               {
                 required: true,
-                message: "Vui lòng nhập tên đăng nhập",
+                message: "Chọn tên nhân viên",
               },
             ]}
           >
-            <Input
-              placeholder="Nhập tên đăng nhập"
-              style={{
-                width: "100%",
-              }}
-            />
+            <Select
+              showSearch
+              placeholder="Chọn tên nhân viên"
+              allowClear
+              style={{ width: "100%" }}
+            >
+              <Option value="Thầu">Thầu</Option>
+              <Option value="Nguyễn Văn Hữu">Nguyễn Văn Hữu</Option>
+              {dataNhanVien.map((item, index) => {
+                return <Option value={item.HOTEN}>{item.HOTEN}</Option>;
+              })}
+            </Select>
           </Form.Item>
           <Form.Item
             label="Mật khẩu"
