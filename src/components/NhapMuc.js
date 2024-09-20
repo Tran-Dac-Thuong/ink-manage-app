@@ -381,99 +381,120 @@ const NhapMuc = (props) => {
       form.resetFields();
       return;
     }
-
-    let insertMucIn = {
-      tenmuc:
-        values.qrcode === "8885007027876"
-          ? "003 (Đen)"
-          : values.qrcode === "8906049013198"
-          ? "003 (Vàng)"
-          : values.qrcode === "8885007027913"
-          ? "003 (Hồng)"
-          : values.qrcode === "8906049013174"
-          ? "003 (Xanh)"
-          : values.qrcode === "8885007020259"
-          ? "664 (Hồng)"
-          : values.qrcode === "8885007020242"
-          ? "664 (Xanh)"
-          : values.qrcode === "8885007020266"
-          ? "664 (Vàng)"
-          : values.qrcode === "8885007020235"
-          ? "664 (Đen)"
-          : values.qrcode === "8885007028255"
-          ? "005 (Đen)"
-          : values.qrcode === "8885007023441"
-          ? "774 (Đen)"
-          : values.qrcode.substring(0, 3),
-      mamuc:
-        values.qrcode === "8885007027876"
-          ? "8885007027876"
-          : values.qrcode === "8906049013198"
-          ? "8906049013198"
-          : values.qrcode === "8885007027913"
-          ? "8885007027913"
-          : values.qrcode === "8906049013174"
-          ? "8906049013174"
-          : values.qrcode === "8885007020259"
-          ? "8885007020259"
-          : values.qrcode === "8885007020242"
-          ? "8885007020242"
-          : values.qrcode === "8885007020266"
-          ? "8885007020266"
-          : values.qrcode === "8885007020235"
-          ? "8885007020235"
-          : values.qrcode === "8885007028255"
-          ? "8885007028255"
-          : values.qrcode === "8885007023441"
-          ? "8885007023441"
-          : values.qrcode.substring(4, 12),
-      soluong: 1,
-      qrcode: values.qrcode,
-      loaiphieu: dataPhieu?.loaiphieu,
-      tenphieu: dataPhieu?.tenphieu,
-      inkId: generateRandomEightDigitNumber(),
-    };
-
-    InkArray.push(insertMucIn);
-
-    let newTaoPhieuData = {
-      danhsachphieu: {
-        loaiphieu: dataPhieu?.loaiphieu,
-        tenphieu: dataPhieu?.tenphieu,
-        ngaytaophieu: dataPhieu?.ngaytaophieu,
-        nguoitaophieu: dataPhieu?.nguoitaophieu,
-        khoaphongxuatmuc:
-          dataPhieu?.loaiphieu === "Phiếu nhập" ? "" : dataPhieu?.khoaphong,
-        trangthai:
-          dataPhieu?.loaiphieu === "Phiếu nhập" ? "Chưa duyệt" : "Chưa xuất",
-        ngayduyetphieu: "",
-        danhsachmucincuaphieu: InkArray,
-      },
-      danhsachtonkho: {},
-    };
-    let DataPhieuValues = {
-      content: newTaoPhieuData,
-    };
-    let jwtToken = await encodeDataToJWT(DataPhieuValues, secretKey);
     try {
-      await axios.get(
-        `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+      let res = await axios.post(
+        `http://172.16.0.53:8080/parse_name_id`,
+        { name_id: values.qrcode },
         {
           mode: "cors",
         }
       );
-      api["success"]({
-        message: "Thành công",
-        description: "Nhập mực in vào phiếu thành công",
-      });
 
-      setStatus(randomString());
+      if (res && res.status === 200) {
+        console.log(res.data.name, res.data.id);
+        let insertMucIn = {
+          tenmuc:
+            values.qrcode === "8885007027876"
+              ? "003 (Đen)"
+              : values.qrcode === "8906049013198"
+              ? "003 (Vàng)"
+              : values.qrcode === "8885007027913"
+              ? "003 (Hồng)"
+              : values.qrcode === "8906049013174"
+              ? "003 (Xanh)"
+              : values.qrcode === "8885007020259"
+              ? "664 (Hồng)"
+              : values.qrcode === "8885007020242"
+              ? "664 (Xanh)"
+              : values.qrcode === "8885007020266"
+              ? "664 (Vàng)"
+              : values.qrcode === "8885007020235"
+              ? "664 (Đen)"
+              : values.qrcode === "8885007028255"
+              ? "005 (Đen)"
+              : values.qrcode === "8885007023441"
+              ? "774 (Đen)"
+              : res.data.name,
+          mamuc:
+            values.qrcode === "8885007027876"
+              ? "8885007027876"
+              : values.qrcode === "8906049013198"
+              ? "8906049013198"
+              : values.qrcode === "8885007027913"
+              ? "8885007027913"
+              : values.qrcode === "8906049013174"
+              ? "8906049013174"
+              : values.qrcode === "8885007020259"
+              ? "8885007020259"
+              : values.qrcode === "8885007020242"
+              ? "8885007020242"
+              : values.qrcode === "8885007020266"
+              ? "8885007020266"
+              : values.qrcode === "8885007020235"
+              ? "8885007020235"
+              : values.qrcode === "8885007028255"
+              ? "8885007028255"
+              : values.qrcode === "8885007023441"
+              ? "8885007023441"
+              : res.data.id,
+          soluong: 1,
+          qrcode: values.qrcode,
+          loaiphieu: dataPhieu?.loaiphieu,
+          tenphieu: dataPhieu?.tenphieu,
+          inkId: generateRandomEightDigitNumber(),
+        };
+
+        InkArray.push(insertMucIn);
+
+        let newTaoPhieuData = {
+          danhsachphieu: {
+            loaiphieu: dataPhieu?.loaiphieu,
+            tenphieu: dataPhieu?.tenphieu,
+            ngaytaophieu: dataPhieu?.ngaytaophieu,
+            nguoitaophieu: dataPhieu?.nguoitaophieu,
+            khoaphongxuatmuc:
+              dataPhieu?.loaiphieu === "Phiếu nhập" ? "" : dataPhieu?.khoaphong,
+            trangthai:
+              dataPhieu?.loaiphieu === "Phiếu nhập"
+                ? "Chưa duyệt"
+                : "Chưa xuất",
+            ngayduyetphieu: "",
+            danhsachmucincuaphieu: InkArray,
+          },
+          danhsachtonkho: {},
+        };
+        let DataPhieuValues = {
+          content: newTaoPhieuData,
+        };
+        let jwtToken = await encodeDataToJWT(DataPhieuValues, secretKey);
+        try {
+          await axios.get(
+            `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+            {
+              mode: "cors",
+            }
+          );
+          api["success"]({
+            message: "Thành công",
+            description: "Nhập mực in vào phiếu thành công",
+          });
+
+          setStatus(randomString());
+        } catch (error) {
+          api["error"]({
+            message: "Thất bại",
+            description: "Đã xảy ra lỗi trong quá trình nhập mực in",
+          });
+        }
+      }
     } catch (error) {
       api["error"]({
         message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình nhập mực in",
+        description:
+          "Vui lòng nhập đúng định dạng hoặc mã mực in không đủ 8 ký tự",
       });
     }
+
     form.resetFields();
   };
 
