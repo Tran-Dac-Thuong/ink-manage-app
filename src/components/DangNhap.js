@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, Input, notification, Select, Space } from "antd";
-import { Link, useNavigate } from "react-router-dom";
-import * as jose from "jose";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import axios from "axios";
 import { Option } from "antd/es/mentions";
@@ -13,43 +12,23 @@ const DangNhap = (props) => {
 
   const [dataNhanVien, setDataNhanVien] = useState([]);
 
+  const [encodeWorkerDangNhap] = useState(
+    () => new Worker("encodeWorkerDangNhap.js")
+  );
+
   const navigate = useNavigate();
 
-  const secretKey = "your-secret-key";
-
-  const decodeJWT = async (token, secretKey) => {
-    try {
-      const secret = new TextEncoder().encode(secretKey);
-      const { payload } = await jose.jwtVerify(token, secret);
-      return payload;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
-  };
-
-  const encodeDataToJWT = async (data, secretKey, options = {}) => {
-    try {
-      const defaultOptions = { expiresIn: "10y" };
-      const finalOptions = { ...defaultOptions, ...options };
-
-      const secret = new TextEncoder().encode(secretKey);
-      const alg = "HS256";
-
-      const jwt = await new jose.SignJWT(data)
-        .setProtectedHeader({ alg })
-        .setExpirationTime(finalOptions.expiresIn)
-        .sign(secret);
-
-      return jwt;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleEncodeDangNhap = (data) => {
+    return new Promise((resolve, reject) => {
+      if (encodeWorkerDangNhap) {
+        encodeWorkerDangNhap.postMessage(data);
+        encodeWorkerDangNhap.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Mã hóa dữ liệu đăng nhập không thành công");
+      }
+    });
   };
 
   useEffect(() => {
@@ -93,36 +72,56 @@ const DangNhap = (props) => {
   }, []);
 
   const handleDangNhap = async (values) => {
-    try {
-      if (values.chonnhanvien === "Thầu" && values.matkhau === "123") {
-        let dataLogin = {
-          username: values.chonnhanvien,
+    if (values.chonnhanvien === "Thầu" && values.matkhau !== "123") {
+      api["error"]({
+        message: "Thất bại",
+        description: "Mật khẩu không đúng. Vui lòng thử lại",
+      });
+      return;
+    }
 
-          role: "Người nhập không xuất",
-          hovaten: values.chonnhanvien,
-        };
-        let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
-        localStorage.setItem("token", jwtToken);
-        navigate("/");
-      } else if (
-        values.chonnhanvien === "Nguyễn Văn Hữu" &&
-        values.matkhau === "123"
-      ) {
-        let dataLogin = {
-          username: values.chonnhanvien,
+    if (values.chonnhanvien === "Nguyễn Văn Hữu" && values.matkhau !== "123") {
+      api["error"]({
+        message: "Thất bại",
+        description: "Mật khẩu không đúng. Vui lòng thử lại",
+      });
+      return;
+    }
 
-          role: "Người nhập",
-          hovaten: values.chonnhanvien,
-        };
-        let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
-        localStorage.setItem("token", jwtToken);
-        navigate("/");
-      } else {
+    if (values.chonnhanvien === "Thầu" && values.matkhau === "123") {
+      let dataLogin = {
+        username: values.chonnhanvien,
+
+        role: "Người nhập không xuất",
+        hovaten: values.chonnhanvien,
+      };
+
+      let jwtToken = await handleEncodeDangNhap(dataLogin);
+      localStorage.setItem("token", jwtToken);
+
+      navigate("/");
+    } else if (
+      values.chonnhanvien === "Nguyễn Văn Hữu" &&
+      values.matkhau === "123"
+    ) {
+      let dataLogin = {
+        username: values.chonnhanvien,
+
+        role: "Người nhập và xuất",
+        hovaten: values.chonnhanvien,
+      };
+
+      let jwtToken = await handleEncodeDangNhap(dataLogin);
+      localStorage.setItem("token", jwtToken);
+
+      navigate("/");
+    } else {
+      try {
         let res = await axios.post("http://172.16.0.53:8080/api/auth/login", {
           username: values.chonnhanvien,
           password: values.matkhau,
         });
-        if (res && res.data) {
+        if (res) {
           let dataLogin = {
             username: values.chonnhanvien,
 
@@ -130,16 +129,16 @@ const DangNhap = (props) => {
             hovaten: values.chonnhanvien,
           };
 
-          let jwtToken = await encodeDataToJWT(dataLogin, secretKey);
+          let jwtToken = await handleEncodeDangNhap(dataLogin);
           localStorage.setItem("token", jwtToken);
           navigate("/");
         }
+      } catch (error) {
+        api["error"]({
+          message: "Thất bại",
+          description: "Mật khẩu không đúng. Vui lòng thử lại",
+        });
       }
-    } catch (error) {
-      api["error"]({
-        message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình đăng nhập",
-      });
     }
   };
 
@@ -206,6 +205,7 @@ const DangNhap = (props) => {
             rules={[
               {
                 required: true,
+                whitespace: true,
                 message: "Vui lòng nhập mật khẩu",
               },
             ]}

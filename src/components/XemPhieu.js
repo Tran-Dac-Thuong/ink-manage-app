@@ -45,7 +45,7 @@ const XemPhieu = (props) => {
     } catch (error) {
       api["error"]({
         message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
   }, []);
@@ -76,7 +76,7 @@ const XemPhieu = (props) => {
         ? "005 (Đen)"
         : qrCode === "8885007023441"
         ? "774 (Đen)"
-        : qrCode.substring(0, 3); // Lấy ba ký tự đầu của mã QR
+        : data[i].tenmuc; // Lấy ba ký tự đầu của mã QR
 
     // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
     if (grouped[prefix]) {

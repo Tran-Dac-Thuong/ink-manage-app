@@ -1,4 +1,4 @@
-import { PrinterFilled } from "@ant-design/icons";
+import { PrinterFilled, UserOutlined } from "@ant-design/icons";
 import { Button, notification } from "antd";
 import {
   MaterialReactTable,
@@ -6,9 +6,8 @@ import {
 } from "material-react-table";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
-import * as jose from "jose";
 import axios from "axios";
 import { Box } from "@mui/material";
 import * as XLSX from "xlsx";
@@ -17,6 +16,7 @@ import ButtonBootstrap from "react-bootstrap/Button";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { PrintTemplateThongKeMucInDaNhapMotThang } from "./print-template/PrintTemplateThongKeMucInDaNhapMotThang";
 import { PrintTemplateThongKeMucInDaNhapMotNam } from "./print-template/PrintTemplateThongKeMucInDaNhapMotNam";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const ThongKeNhap = (props) => {
   const [loadingDataMucInDaNhap, setLoadingDataMucInDaNhap] = useState(true);
@@ -28,8 +28,37 @@ const ThongKeNhap = (props) => {
   const [oneMonthAgo, setOneMonthAgo] = useState("");
   const [oneYearAgo, setOneYearAgo] = useState("");
   const [current, setCurrent] = useState("");
+  const [tendangnhap, setTendangnhap] = useState("");
 
+  const [decodeWorkerLoginInfo] = useState(
+    () => new Worker("decodeWorkerLoginInfo.js")
+  );
+  const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
+  const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
   const [api, contextHolder] = notification.useNotification();
+
+  const [inkNameMapping, setInkNameMapping] = useState({
+    276: "haibaysau",
+    "49A": "bonchinA",
+    337: "bababay",
+    "78A": "baytamA",
+    "052": "khongnamhai",
+    319: "bamotchin",
+    "12A": "muoihaiA",
+    "17A": "muoibayA",
+    "003 (Đen)": "khongkhongbaden",
+    "003 (Vàng)": "khongkhongbavang",
+    "003 (Hồng)": "khongkhongbahong",
+    "003 (Xanh)": "khongkhongbaxanh",
+    "664 (Đen)": "sausaubonden",
+    "664 (Vàng)": "sausaubonvang",
+    "664 (Hồng)": "sausaubonhong",
+    "664 (Xanh)": "sausaubonxanh",
+    "005 (Đen)": "khongkhongnamden",
+    "774 (Đen)": "baybaybonden",
+  });
+
+  const navigate = useNavigate();
 
   const componentRefMotThang = useRef();
 
@@ -43,41 +72,30 @@ const ThongKeNhap = (props) => {
     content: () => componentRefMotNam.current,
   });
 
-  const secretKey = "your-secret-key";
-
-  const decodeJWT = async (token, secretKey) => {
-    try {
-      const secret = new TextEncoder().encode(secretKey);
-      const { payload } = await jose.jwtVerify(token, secret);
-      return payload;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleDecodeLoginInfo = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerLoginInfo) {
+        decodeWorkerLoginInfo.postMessage(encodedString);
+        decodeWorkerLoginInfo.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã thông tin đăng nhập không thành công");
+      }
+    });
   };
 
-  const encodeDataToJWT = async (data, secretKey, options = {}) => {
-    try {
-      const defaultOptions = { expiresIn: "10y" };
-      const finalOptions = { ...defaultOptions, ...options };
-
-      const secret = new TextEncoder().encode(secretKey);
-      const alg = "HS256";
-
-      const jwt = await new jose.SignJWT(data)
-        .setProtectedHeader({ alg })
-        .setExpirationTime(finalOptions.expiresIn)
-        .sign(secret);
-
-      return jwt;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleDecodeData = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerData) {
+        decodeWorkerData.postMessage(encodedString);
+        decodeWorkerData.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã danh sách không thành công");
+      }
+    });
   };
 
   const parseDate = (dateStr) => {
@@ -91,256 +109,280 @@ const ThongKeNhap = (props) => {
   }, []);
 
   useEffect(() => {
-    const fetchDataSearch = async () => {
-      try {
-        let timestamp = Date.now();
-
-        let date = new Date(timestamp);
-
-        let day = date.getDate();
-        let month = date.getMonth() + 1;
-        let year = date.getFullYear();
-
-        let currentTime = `${day}-${month}-${year}`;
-
-        // Lấy ngày hiện tại
-        const currentDate = new Date();
-        // Tính ngày 1 tháng trước
-        const oneMonthAgo = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() - 1,
-          currentDate.getDate()
-        );
-
-        const oneYearAgo = new Date(
-          currentDate.getFullYear() - 1,
-          currentDate.getMonth(),
-          currentDate.getDate()
-        );
-
-        let dayOfOneMonthAgo = oneMonthAgo.getDate();
-        let monthOfOneMonthAgo = oneMonthAgo.getMonth() + 1;
-        let yearOfOneMonthAgo = oneMonthAgo.getFullYear();
-
-        let dayOfOneYearAgo = oneYearAgo.getDate();
-        let monthOfOneYearAgo = oneYearAgo.getMonth() + 1;
-        let yearOfOneYearAgo = oneYearAgo.getFullYear();
-
-        let oneMonthAgoTime = `${dayOfOneMonthAgo}-${monthOfOneMonthAgo}-${yearOfOneMonthAgo}`;
-
-        let oneYearAgoTime = `${dayOfOneYearAgo}-${monthOfOneYearAgo}-${yearOfOneYearAgo}`;
-
-        setOneMonthAgo(oneMonthAgoTime);
-        setOneYearAgo(oneYearAgoTime);
-        setCurrent(currentTime);
-
-        let res = await axios.get("http://172.16.0.53:8080/danh_sach");
-        if (res && res.data) {
-          let dataFilterOnMonth = [];
-          let dataFilterOnYear = [];
-          let tonkhoArr = [];
-          let xuatArr = [];
-          let nhapArr = [];
-
-          const decodedData = await Promise.all(
-            res.data.map(async (item) => {
-              let dataDecode = await decodeJWT(item?.content, secretKey);
-
-              return {
-                ...item,
-                decodedContent: dataDecode,
-              };
-            })
-          );
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã xuất"
-            ) {
-              let danhsachmucinxuatkho =
-                decodedData[i].decodedContent?.content?.danhsachphieu
-                  ?.danhsachmucincuaphieu;
-              xuatArr = [...xuatArr, ...danhsachmucinxuatkho];
-            }
+    try {
+      const checkAlreadyLogin = async () => {
+        let token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/dangnhap");
+        } else {
+          let decodeToken = await handleDecodeLoginInfo(token);
+          if (decodeToken?.role === "Người nhập không xuất") {
+            navigate("/forbidden");
           }
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã duyệt"
-            ) {
-              let danhsachmucinnhapkho =
-                decodedData[i].decodedContent?.content?.danhsachphieu
-                  ?.danhsachmucincuaphieu;
-              nhapArr = [...nhapArr, ...danhsachmucinnhapkho];
-            }
-          }
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã duyệt"
-            ) {
-              let danhsachmucinthemvaokho =
-                decodedData[i].decodedContent?.content?.danhsachtonkho
-                  ?.danhsachmucinthemvaokho;
-              tonkhoArr = [...tonkhoArr, ...danhsachmucinthemvaokho];
-            }
-          }
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã duyệt"
-            ) {
-              let danhsachmucindanhap =
-                decodedData[i].decodedContent?.content?.danhsachphieu
-                  ?.danhsachmucincuaphieu;
-
-              // Giả sử mỗi mục có một trường ngayTao kiểu Date
-              const filteredItemsOneMonth = danhsachmucindanhap.filter(
-                (item) => {
-                  const itemDate = item.thoigiannhap;
-
-                  let date1OneMonthAgo = parseDate(itemDate.split(" ")[0]);
-                  let date2OneMonthAgo = parseDate(oneMonthAgoTime);
-
-                  const isInRange =
-                    date1OneMonthAgo >= date2OneMonthAgo &&
-                    date1OneMonthAgo <= currentDate;
-
-                  return isInRange;
-                }
-              );
-
-              dataFilterOnMonth = [
-                ...dataFilterOnMonth,
-                ...filteredItemsOneMonth,
-              ];
-            }
-          }
-
-          for (let i = 0; i < decodedData.length; i++) {
-            if (
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.trangthai === "Đã duyệt"
-            ) {
-              let danhsachmucindanhap =
-                decodedData[i].decodedContent?.content?.danhsachphieu
-                  ?.danhsachmucincuaphieu;
-
-              // Giả sử mỗi mục có một trường ngayTao kiểu Date
-              const filteredItemsOneYear = danhsachmucindanhap.filter(
-                (item) => {
-                  const itemDate = item.thoigiannhap;
-
-                  let date1OneYearAgo = parseDate(itemDate.split(" ")[0]);
-                  let date2OneYearAgo = parseDate(oneYearAgoTime);
-
-                  const isInRange =
-                    date1OneYearAgo >= date2OneYearAgo &&
-                    date1OneYearAgo <= currentDate;
-
-                  return isInRange;
-                }
-              );
-
-              dataFilterOnYear = [...dataFilterOnYear, ...filteredItemsOneYear];
-            }
-          }
-
-          // Định nghĩa một đối tượng mapping để chuyển đổi tên mực
-          const inkNameMapping = {
-            276: "haibaysau",
-            "49A": "bonchinA",
-            337: "bababay",
-            "78A": "baytamA",
-            "052": "khongnamhai",
-            319: "bamotchin",
-            "12A": "muoihaiA",
-            "17A": "muoibayA",
-            "003 (Đen)": "khongkhongbaden",
-            "003 (Vàng)": "khongkhongbavang",
-            "003 (Hồng)": "khongkhongbahong",
-            "003 (Xanh)": "khongkhongbaxanh",
-            "664 (Đen)": "sausaubonden",
-            "664 (Vàng)": "sausaubonvang",
-            "664 (Hồng)": "sausaubonhong",
-            "664 (Xanh)": "sausaubonxanh",
-            "005 (Đen)": "khongkhongnamden",
-            "774 (Đen)": "baybaybonden",
-          };
-
-          // Tạo một đối tượng để lưu trữ số lượng của từng loại mực với tên mới
-          const inkCountsMotThang = Object.keys(inkNameMapping).reduce(
-            (acc, key) => {
-              acc[inkNameMapping[key]] = 0;
-              return acc;
-            },
-            {}
-          );
-
-          const inkCountsMotNam = Object.keys(inkNameMapping).reduce(
-            (acc, key) => {
-              acc[inkNameMapping[key]] = 0;
-              return acc;
-            },
-            {}
-          );
-
-          // Tính tổng số lượng và số lượng của từng loại mực
-          let totalCountMotThang = 0;
-          dataFilterOnMonth.forEach((item) => {
-            totalCountMotThang += 1;
-            // Giả sử tên mực được lưu trong trường 'tenMuc' của mỗi item
-            if (inkNameMapping.hasOwnProperty(item.tenmuc)) {
-              inkCountsMotThang[inkNameMapping[item.tenmuc]] += 1;
-            }
-          });
-
-          let totalCountMotNam = 0;
-          dataFilterOnYear.forEach((item) => {
-            totalCountMotNam += 1;
-            // Giả sử tên mực được lưu trong trường 'tenMuc' của mỗi item
-            if (inkNameMapping.hasOwnProperty(item.tenmuc)) {
-              inkCountsMotNam[inkNameMapping[item.tenmuc]] += 1;
-            }
-          });
-
-          // Tạo mảng dữ liệu cho bảng
-          const tableDataMotThang = [
-            {
-              tongSo: totalCountMotThang,
-              ...inkCountsMotThang,
-            },
-          ];
-
-          const tableDataMotNam = [
-            {
-              tongSo: totalCountMotNam,
-              ...inkCountsMotNam,
-            },
-          ];
-
-          setDataDaXuat(xuatArr);
-          setDataDaNhap(nhapArr);
-          setDataTonKho(tonkhoArr);
-
-          setDataMucInDaNhapMotThang(tableDataMotThang);
-          setDataMucInDaNhapMotNam(tableDataMotNam);
-
-          setLoadingDataMucInDaNhap(false);
+          setTendangnhap(decodeToken?.username);
         }
-      } catch (error) {
-        api["error"]({
-          message: "Thất bại",
-          description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-        });
-      }
-    };
+      };
+      checkAlreadyLogin();
+    } catch (error) {
+      api["error"]({
+        message: "Lỗi",
+        description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     fetchDataSearch();
   }, []);
+
+  const fetchDataSearch = async () => {
+    try {
+      let timestamp = Date.now();
+
+      let date = new Date(timestamp);
+
+      let day = date.getDate();
+      let month = date.getMonth() + 1;
+      let year = date.getFullYear();
+
+      let currentTime = `${day}-${month}-${year}`;
+
+      // Lấy ngày hiện tại
+      const currentDate = new Date();
+      // Tính ngày 1 tháng trước
+      const oneMonthAgo = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - 1,
+        currentDate.getDate()
+      );
+
+      const oneYearAgo = new Date(
+        currentDate.getFullYear() - 1,
+        currentDate.getMonth(),
+        currentDate.getDate()
+      );
+
+      let dayOfOneMonthAgo = oneMonthAgo.getDate();
+      let monthOfOneMonthAgo = oneMonthAgo.getMonth() + 1;
+      let yearOfOneMonthAgo = oneMonthAgo.getFullYear();
+
+      let dayOfOneYearAgo = oneYearAgo.getDate();
+      let monthOfOneYearAgo = oneYearAgo.getMonth() + 1;
+      let yearOfOneYearAgo = oneYearAgo.getFullYear();
+
+      let oneMonthAgoTime = `${dayOfOneMonthAgo}-${monthOfOneMonthAgo}-${yearOfOneMonthAgo}`;
+
+      let oneYearAgoTime = `${dayOfOneYearAgo}-${monthOfOneYearAgo}-${yearOfOneYearAgo}`;
+
+      setOneMonthAgo(oneMonthAgoTime);
+      setOneYearAgo(oneYearAgoTime);
+      setCurrent(currentTime);
+
+      let res = await axios.get("http://172.16.0.53:8080/danh_sach");
+      if (res && res.data) {
+        let dataFilterOnMonth = [];
+        let dataFilterOnYear = [];
+        let tonkhoArr = [];
+        let xuatArr = [];
+        let nhapArr = [];
+
+        const listData = res?.data;
+
+        const decodedData = [];
+        for (const item of listData) {
+          try {
+            let dataDecode = await handleDecodeData(item.content);
+
+            decodedData.push({
+              ...item,
+              decodedContent: dataDecode,
+            });
+          } catch (error) {
+            console.error("Error decoding item:", item, error);
+            api["error"]({
+              message: "Lỗi",
+              description:
+                "Đã xảy ra lỗi trong quá trình hiển thị thống kê nhập",
+            });
+          }
+        }
+
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã xuất"
+          ) {
+            let danhsachmucinxuatkho =
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.danhsachmucincuaphieu;
+            xuatArr = [...xuatArr, ...danhsachmucinxuatkho];
+          }
+        }
+
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã duyệt"
+          ) {
+            let danhsachmucinnhapkho =
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.danhsachmucincuaphieu;
+            nhapArr = [...nhapArr, ...danhsachmucinnhapkho];
+          }
+        }
+
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã duyệt"
+          ) {
+            let danhsachmucinthemvaokho =
+              decodedData[i].decodedContent?.content?.danhsachtonkho
+                ?.danhsachmucinthemvaokho;
+            tonkhoArr = [...tonkhoArr, ...danhsachmucinthemvaokho];
+          }
+        }
+
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã duyệt"
+          ) {
+            let danhsachmucindanhap =
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.danhsachmucincuaphieu;
+
+            // Giả sử mỗi mục có một trường ngayTao kiểu Date
+            const filteredItemsOneMonth = danhsachmucindanhap.filter((item) => {
+              const itemDate = item.thoigiannhap;
+
+              let date1OneMonthAgo = parseDate(itemDate.split(" ")[0]);
+              let date2OneMonthAgo = parseDate(oneMonthAgoTime);
+
+              const isInRange =
+                date1OneMonthAgo >= date2OneMonthAgo &&
+                date1OneMonthAgo <= currentDate;
+
+              return isInRange;
+            });
+
+            dataFilterOnMonth = [
+              ...dataFilterOnMonth,
+              ...filteredItemsOneMonth,
+            ];
+          }
+        }
+
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã duyệt"
+          ) {
+            let danhsachmucindanhap =
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.danhsachmucincuaphieu;
+
+            // Giả sử mỗi mục có một trường ngayTao kiểu Date
+            const filteredItemsOneYear = danhsachmucindanhap.filter((item) => {
+              const itemDate = item.thoigiannhap;
+
+              let date1OneYearAgo = parseDate(itemDate.split(" ")[0]);
+              let date2OneYearAgo = parseDate(oneYearAgoTime);
+
+              const isInRange =
+                date1OneYearAgo >= date2OneYearAgo &&
+                date1OneYearAgo <= currentDate;
+
+              return isInRange;
+            });
+
+            dataFilterOnYear = [...dataFilterOnYear, ...filteredItemsOneYear];
+          }
+        }
+
+        const initializeInkCounts = () => {
+          const counts = {};
+          Object.values(inkNameMapping).forEach((value) => {
+            counts[value] = 0;
+          });
+          return counts;
+        };
+
+        const inkCountsMotThang = initializeInkCounts();
+        const inkCountsMotNam = initializeInkCounts();
+
+        // Tính tổng số lượng và số lượng của từng loại mực
+        let totalCountMotThang = 0;
+        dataFilterOnMonth.forEach((item) => {
+          totalCountMotThang += 1;
+          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
+            setInkNameMapping((prevMapping) => ({
+              ...prevMapping,
+              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
+            }));
+          }
+          const inkKey =
+            inkNameMapping[item.tenmuc] ||
+            item.tenmuc.toLowerCase().replace(/\s+/g, "");
+          inkCountsMotThang[inkKey] = (inkCountsMotThang[inkKey] || 0) + 1;
+        });
+
+        let totalCountMotNam = 0;
+        dataFilterOnYear.forEach((item) => {
+          totalCountMotNam += 1;
+          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
+            setInkNameMapping((prevMapping) => ({
+              ...prevMapping,
+              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
+            }));
+          }
+          const inkKey =
+            inkNameMapping[item.tenmuc] ||
+            item.tenmuc.toLowerCase().replace(/\s+/g, "");
+          inkCountsMotNam[inkKey] = (inkCountsMotNam[inkKey] || 0) + 1;
+        });
+
+        const tableDataMotThang = [
+          {
+            tongSo: totalCountMotThang,
+            ...Object.fromEntries(
+              Object.entries(inkCountsMotThang).map(([key, value]) => [
+                key,
+                value || 0,
+              ])
+            ),
+          },
+        ];
+
+        const tableDataMotNam = [
+          {
+            tongSo: totalCountMotNam,
+            ...Object.fromEntries(
+              Object.entries(inkCountsMotNam).map(([key, value]) => [
+                key,
+                value || 0,
+              ])
+            ),
+          },
+        ];
+        console.log(tableDataMotThang);
+
+        setDataDaXuat(xuatArr);
+        setDataDaNhap(nhapArr);
+        setDataTonKho(tonkhoArr);
+
+        setDataMucInDaNhapMotThang(tableDataMotThang);
+        setDataMucInDaNhapMotNam(tableDataMotNam);
+
+        setLoadingDataMucInDaNhap(false);
+      }
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+      });
+    }
+  };
 
   const handleExportRowsExcelMucInDaNhapMotThang = (rows) => {
     try {
@@ -351,25 +393,11 @@ const ThongKeNhap = (props) => {
       for (let i = 0; i < rowData.length; i++) {
         let configData = {
           "Tổng cộng": rowData[i].tongSo,
-          "Mực 276": rowData[i].haibaysau,
-          "Mực 337": rowData[i].bababay,
-          "Mực 49A": rowData[i].bonchinA,
-          "Mực 319": rowData[i].bamotchin,
-          "Mực 78A": rowData[i].baytamA,
-          "Mực 12A": rowData[i].muoihaiA,
-          "Mực 17A": rowData[i].muoibayA,
-          "Mực 052": rowData[i].khongnamhai,
-          "Mực 003 (Đen)": rowData[i].khongkhongbaden,
-          "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
-          "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
-          "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
-          "Mực 664 (Đen)": rowData[i].sausaubonden,
-          "Mực 664 (Vàng)": rowData[i].sausaubonvang,
-          "Mực 664 (Hồng)": rowData[i].sausaubonhong,
-          "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
-          "Mực 005 (Đen)": rowData[i].khongkhongnamden,
-          "Mực 774 (Đen)": rowData[i].baybaybonden,
         };
+
+        Object.entries(inkNameMapping).forEach(([inkName, mappedName]) => {
+          configData[`Mực ${inkName}`] = rowData[i][mappedName];
+        });
 
         configDataArr.push(configData);
       }
@@ -410,25 +438,12 @@ const ThongKeNhap = (props) => {
       for (let i = 0; i < rowData.length; i++) {
         let configData = {
           "Tổng cộng": rowData[i].tongSo,
-          "Mực 276": rowData[i].haibaysau,
-          "Mực 337": rowData[i].bababay,
-          "Mực 49A": rowData[i].bonchinA,
-          "Mực 319": rowData[i].bamotchin,
-          "Mực 78A": rowData[i].baytamA,
-          "Mực 12A": rowData[i].muoihaiA,
-          "Mực 17A": rowData[i].muoibayA,
-          "Mực 052": rowData[i].khongnamhai,
-          "Mực 003 (Đen)": rowData[i].khongkhongbaden,
-          "Mực 003 (Vàng)": rowData[i].khongkhongbavang,
-          "Mực 003 (Hồng)": rowData[i].khongkhongbahong,
-          "Mực 003 (Xanh)": rowData[i].khongkhongbaxanh,
-          "Mực 664 (Đen)": rowData[i].sausaubonden,
-          "Mực 664 (Vàng)": rowData[i].sausaubonvang,
-          "Mực 664 (Hồng)": rowData[i].sausaubonhong,
-          "Mực 664 (Xanh)": rowData[i].sausaubonxanh,
-          "Mực 005 (Đen)": rowData[i].khongkhongnamden,
-          "Mực 774 (Đen)": rowData[i].baybaybonden,
         };
+
+        // Dynamically add all ink types
+        Object.entries(inkNameMapping).forEach(([inkName, mappedName]) => {
+          configData[`Mực ${inkName}`] = rowData[i][mappedName];
+        });
 
         configDataArr.push(configData);
       }
@@ -460,106 +475,31 @@ const ThongKeNhap = (props) => {
     }
   };
 
-  const columnsNhapMucIn = useMemo(
-    () => [
+  const handleDangXuat = () => {
+    localStorage.removeItem("token");
+
+    navigate("/dangnhap");
+  };
+
+  const columnsNhapMucIn = useMemo(() => {
+    const baseColumns = [
       {
         accessorKey: "tongSo",
         header: "Tổng cộng",
         size: 80,
       },
-      {
-        accessorKey: "haibaysau",
-        header: "276",
+    ];
+
+    const dynamicColumns = Object.entries(inkNameMapping).map(
+      ([originalName, mappedName]) => ({
+        accessorKey: mappedName,
+        header: originalName,
         size: 80,
-      },
-      {
-        accessorKey: "bababay",
-        header: "337",
-        size: 80,
-      },
-      {
-        accessorKey: "bonchinA",
-        header: "49A",
-        size: 80,
-      },
-      {
-        accessorKey: "bamotchin",
-        header: "319",
-        size: 80,
-      },
-      {
-        accessorKey: "baytamA",
-        header: "78A",
-        size: 80,
-      },
-      {
-        accessorKey: "muoihaiA",
-        header: "12A",
-        size: 80,
-      },
-      {
-        accessorKey: "muoibayA",
-        header: "17A",
-        size: 80,
-      },
-      {
-        accessorKey: "khongnamhai",
-        header: "052",
-        size: 80,
-      },
-      {
-        accessorKey: "khongkhongbaden",
-        header: "003 (Đen)",
-        size: 80,
-      },
-      {
-        accessorKey: "khongkhongbavang",
-        header: "003 (Vàng)",
-        size: 80,
-      },
-      {
-        accessorKey: "khongkhongbahong",
-        header: "003 (Hồng)",
-        size: 80,
-      },
-      {
-        accessorKey: "khongkhongbaxanh",
-        header: "003 (Xanh)",
-        size: 80,
-      },
-      {
-        accessorKey: "sausaubonden",
-        header: "664 (Đen)",
-        size: 80,
-      },
-      {
-        accessorKey: "sausaubonvang",
-        header: "664 (Vàng)",
-        size: 80,
-      },
-      {
-        accessorKey: "sausaubonhong",
-        header: "664 (Hồng)",
-        size: 80,
-      },
-      {
-        accessorKey: "sausaubonxanh",
-        header: "664 (Xanh)",
-        size: 80,
-      },
-      {
-        accessorKey: "khongkhongnamden",
-        header: "005 (Đen)",
-        size: 80,
-      },
-      {
-        accessorKey: "baybaybonden",
-        header: "774 (Đen)",
-        size: 80,
-      },
-    ],
-    []
-  );
+      })
+    );
+
+    return [...baseColumns, ...dynamicColumns];
+  }, [inkNameMapping]);
 
   const tableNhapMucInTheoMotThang = useMaterialReactTable({
     columns: columnsNhapMucIn,
@@ -656,7 +596,7 @@ const ThongKeNhap = (props) => {
         <div className="text-center mt-5">
           <img src="../img/logo2.png" alt="" />
         </div>
-        <div className="mt-5 mb-3">
+        <div className="mt-5 mb-3 d-flex">
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-success me-2">
               Trang chủ
@@ -677,7 +617,7 @@ const ThongKeNhap = (props) => {
               Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
             </button>
           </Link>
-          <div className="dropdown mt-2">
+          <div className="dropdown me-2">
             <button
               type="button"
               className="btn btn-primary dropdown-toggle"
@@ -698,6 +638,16 @@ const ThongKeNhap = (props) => {
               </li>
             </ul>
           </div>
+          <Dropdown data-bs-theme="dark">
+            <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
+              <UserOutlined />
+              {tendangnhap}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={handleDangXuat}>Đăng xuất</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">
           <span>DANH SÁCH SỐ LƯỢNG MỰC IN ĐÃ NHẬP TRONG 1 THÁNG QUA</span>
@@ -772,6 +722,7 @@ const ThongKeNhap = (props) => {
           data={dataMucInDaNhapMotThang}
           oneMonthAgo={oneMonthAgo}
           current={current}
+          inkNameMapping={inkNameMapping}
         />
       </div>
       <div style={{ display: "none" }}>
@@ -780,6 +731,7 @@ const ThongKeNhap = (props) => {
           data={dataMucInDaNhapMotNam}
           oneYearAgo={oneYearAgo}
           current={current}
+          inkNameMapping={inkNameMapping}
         />
       </div>
     </>

@@ -31,7 +31,7 @@ export const PrintTemplateDanhSachMucInDaXuat = React.forwardRef(
           ? "005 (Đen)"
           : qrCode === "8885007023441"
           ? "774 (Đen)"
-          : qrCode.substring(0, 3); // Lấy ba ký tự đầu của mã QR
+          : dataInkPrint[i].tenmuc; // Lấy ba ký tự đầu của mã QR
 
       // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
       if (grouped[prefix]) {

@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import * as jose from "jose";
 import { Button, notification } from "antd";
 import {
   MaterialReactTable,
@@ -16,9 +15,10 @@ import jsPDF from "jspdf";
 import fontPath from "../fonts/Roboto-Black.ttf";
 import { Helmet } from "react-helmet";
 import { Link, useNavigate } from "react-router-dom";
-import { PrinterFilled } from "@ant-design/icons";
+import { PrinterFilled, UserOutlined } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
 import { PrintTemplateDanhSachMucInDaNhap } from "./print-template/PrintTemplateDanhSachMucInDaNhap";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const DanhSachMucInDaNhap = (props) => {
   const [danhSachDaNhap, setDanhSachDaNhap] = useState([]);
@@ -26,12 +26,15 @@ const DanhSachMucInDaNhap = (props) => {
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [role, setRole] = useState("");
-
+  const [tendangnhap, setTendangnhap] = useState("");
+  const [decodeWorkerLoginInfo] = useState(
+    () => new Worker("decodeWorkerLoginInfo.js")
+  );
+  const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
+  const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
   const [api, contextHolder] = notification.useNotification();
 
   const navigate = useNavigate();
-
-  const secretKey = "your-secret-key";
 
   const componentRef = useRef();
 
@@ -39,39 +42,43 @@ const DanhSachMucInDaNhap = (props) => {
     content: () => componentRef.current,
   });
 
-  const decodeJWT = async (token, secretKey) => {
-    try {
-      const secret = new TextEncoder().encode(secretKey);
-      const { payload } = await jose.jwtVerify(token, secret);
-      return payload;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleDecodeLoginInfo = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerLoginInfo) {
+        decodeWorkerLoginInfo.postMessage(encodedString);
+        decodeWorkerLoginInfo.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã thông tin đăng nhập không thành công");
+      }
+    });
   };
 
-  const encodeDataToJWT = async (data, secretKey, options = {}) => {
-    try {
-      const defaultOptions = { expiresIn: "10y" };
-      const finalOptions = { ...defaultOptions, ...options };
+  const handleDecodeData = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerData) {
+        decodeWorkerData.postMessage(encodedString);
+        decodeWorkerData.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã danh sách không thành công");
+      }
+    });
+  };
 
-      const secret = new TextEncoder().encode(secretKey);
-      const alg = "HS256";
-
-      const jwt = await new jose.SignJWT(data)
-        .setProtectedHeader({ alg })
-        .setExpirationTime(finalOptions.expiresIn)
-        .sign(secret);
-
-      return jwt;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleDecodeRole = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerRole) {
+        decodeWorkerRole.postMessage(encodedString);
+        decodeWorkerRole.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã vai trò không thành công");
+      }
+    });
   };
 
   useEffect(() => {
@@ -80,16 +87,39 @@ const DanhSachMucInDaNhap = (props) => {
 
   useEffect(() => {
     try {
-      let token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/dangnhap");
-      }
+      const checkAlreadyLogin = async () => {
+        let token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/dangnhap");
+        } else {
+          let decodeToken = await handleDecodeLoginInfo(token);
+          setTendangnhap(decodeToken?.username);
+        }
+      };
+      checkAlreadyLogin();
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      try {
+        let decodeToken = await handleDecodeRole(localStorage.getItem("token"));
+
+        setRole(decodeToken.role);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình lấy vai trò người dùng",
+        });
+      }
+    };
+
+    getRole();
   }, []);
 
   useEffect(() => {
@@ -101,16 +131,26 @@ const DanhSachMucInDaNhap = (props) => {
           let xuatArr = [];
           let danhsachdanhapArr = [];
 
-          const decodedData = await Promise.all(
-            res.data.map(async (item) => {
-              let dataDecode = await decodeJWT(item?.content, secretKey);
+          const listData = res?.data;
 
-              return {
+          const decodedData = [];
+          for (const item of listData) {
+            try {
+              let dataDecode = await handleDecodeData(item.content);
+
+              decodedData.push({
                 ...item,
                 decodedContent: dataDecode,
-              };
-            })
-          );
+              });
+            } catch (error) {
+              console.error("Error decoding item:", item, error);
+              api["error"]({
+                message: "Lỗi",
+                description:
+                  "Đã xảy ra lỗi trong quá trình hiển thị danh sách đã nhập",
+              });
+            }
+          }
 
           for (let i = 0; i < decodedData.length; i++) {
             if (
@@ -166,7 +206,8 @@ const DanhSachMucInDaNhap = (props) => {
       } catch (error) {
         api["error"]({
           message: "Thất bại",
-          description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+          description:
+            "Đã xảy ra lỗi trong quá trình hiển thị danh sách đã nhập",
         });
       }
     };
@@ -256,6 +297,12 @@ const DanhSachMucInDaNhap = (props) => {
     }
   };
 
+  const handleDangXuat = () => {
+    localStorage.removeItem("token");
+
+    navigate("/dangnhap");
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -337,24 +384,6 @@ const DanhSachMucInDaNhap = (props) => {
     ),
   });
 
-  const getRole = async () => {
-    try {
-      let decodeToken = await decodeJWT(
-        localStorage.getItem("token"),
-        secretKey
-      );
-
-      setRole(decodeToken.role);
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
-  };
-
-  getRole();
-
   return (
     <>
       {contextHolder}
@@ -366,7 +395,7 @@ const DanhSachMucInDaNhap = (props) => {
         <div className="text-center mt-5">
           <img src="../img/logo2.png" alt="" />
         </div>
-        <div className="mt-2 mb-3">
+        <div className="mt-3 mb-3 d-flex">
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-info me-2">
               Trang chủ
@@ -392,7 +421,7 @@ const DanhSachMucInDaNhap = (props) => {
           )}
           {role === "Người duyệt" ? (
             <>
-              <div className="dropdown mt-2">
+              <div className="dropdown me-2">
                 <button
                   type="button"
                   className="btn btn-primary dropdown-toggle"
@@ -417,6 +446,16 @@ const DanhSachMucInDaNhap = (props) => {
           ) : (
             <></>
           )}
+          <Dropdown data-bs-theme="dark">
+            <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
+              <UserOutlined />
+              {tendangnhap}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={handleDangXuat}>Đăng xuất</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH MỰC IN ĐÃ NHẬP</h4>
         <div className="mb-3">

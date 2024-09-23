@@ -9,7 +9,6 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "antd";
 import { Box } from "@mui/material";
-import * as jose from "jose";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
 
@@ -24,46 +23,69 @@ const InkManager = (props) => {
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
-
-  const secretKey = "your-secret-key";
+  const [encodeWorkerDuyet] = useState(
+    () => new Worker("encodeWorkerDuyet.js")
+  );
+  const [decodeWorkerLoginInfo] = useState(
+    () => new Worker("decodeWorkerLoginInfo.js")
+  );
+  const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
+  const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
 
   const navigate = useNavigate();
 
   const [api, contextHolder] = notification.useNotification();
 
-  const decodeJWT = async (token, secretKey) => {
-    try {
-      const secret = new TextEncoder().encode(secretKey);
-      const { payload } = await jose.jwtVerify(token, secret);
-      return payload;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình giải mã dữ liệu",
-      });
-    }
+  const handleEncodeDuyet = (data) => {
+    return new Promise((resolve, reject) => {
+      if (encodeWorkerDuyet) {
+        encodeWorkerDuyet.postMessage(data);
+        encodeWorkerDuyet.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Mã hóa dữ liệu duyệt không thành công");
+      }
+    });
   };
 
-  const encodeDataToJWT = async (data, secretKey, options = {}) => {
-    try {
-      const defaultOptions = { expiresIn: "10y" };
-      const finalOptions = { ...defaultOptions, ...options };
+  const handleDecodeLoginInfo = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerLoginInfo) {
+        decodeWorkerLoginInfo.postMessage(encodedString);
+        decodeWorkerLoginInfo.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã thông tin đăng nhập không thành công");
+      }
+    });
+  };
 
-      const secret = new TextEncoder().encode(secretKey);
-      const alg = "HS256";
+  const handleDecodeData = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerData) {
+        decodeWorkerData.postMessage(encodedString);
+        decodeWorkerData.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã danh sách không thành công");
+      }
+    });
+  };
 
-      const jwt = await new jose.SignJWT(data)
-        .setProtectedHeader({ alg })
-        .setExpirationTime(finalOptions.expiresIn)
-        .sign(secret);
-
-      return jwt;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình mã hóa dữ liệu",
-      });
-    }
+  const handleDecodeRole = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerRole) {
+        decodeWorkerRole.postMessage(encodedString);
+        decodeWorkerRole.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã vai trò không thành công");
+      }
+    });
   };
 
   useEffect(() => {
@@ -77,7 +99,9 @@ const InkManager = (props) => {
         if (!token) {
           navigate("/dangnhap");
         }
-        let decodeLoginInfo = await decodeJWT(token, secretKey);
+
+        let decodeLoginInfo = await handleDecodeLoginInfo(token);
+
         setTendangnhap(decodeLoginInfo?.username);
         setHovaten(decodeLoginInfo?.hovaten);
       };
@@ -85,9 +109,26 @@ const InkManager = (props) => {
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      try {
+        let decodeToken = await handleDecodeRole(localStorage.getItem("token"));
+
+        setRole(decodeToken.role);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình lấy vai trò người dùng",
+        });
+      }
+    };
+
+    getRole();
   }, []);
 
   useEffect(() => {
@@ -102,16 +143,26 @@ const InkManager = (props) => {
         let xuatArr = [];
         let nhapArr = [];
 
-        const decodedData = await Promise.all(
-          res.data.map(async (item) => {
-            let dataDecode = await decodeJWT(item.content, secretKey);
+        const listData = res?.data;
 
-            return {
+        const decodedData = [];
+        for (const item of listData) {
+          try {
+            let dataDecode = await handleDecodeData(item.content);
+
+            decodedData.push({
               ...item,
               decodedContent: dataDecode,
-            };
-          })
-        );
+            });
+          } catch (error) {
+            console.error("Error decoding item:", item, error);
+            api["error"]({
+              message: "Lỗi",
+              description:
+                "Đã xảy ra lỗi trong quá trình hiển thị danh sách phiếu",
+            });
+          }
+        }
 
         for (let i = 0; i < decodedData.length; i++) {
           if (
@@ -215,7 +266,7 @@ const InkManager = (props) => {
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị danh sách phiếu",
       });
     }
   };
@@ -392,24 +443,6 @@ const InkManager = (props) => {
     []
   );
 
-  const getRole = async () => {
-    try {
-      let decodeToken = await decodeJWT(
-        localStorage.getItem("token"),
-        secretKey
-      );
-
-      setRole(decodeToken.role);
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
-  };
-
-  getRole();
-
   const randomString = (length = 8) => {
     const chars =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -466,7 +499,7 @@ const InkManager = (props) => {
           content: updateDataDaDuyet,
         };
 
-        let jwtToken = await encodeDataToJWT(DataPhieuValues, secretKey);
+        let jwtToken = await handleEncodeDuyet(DataPhieuValues);
 
         try {
           await axios.get(
@@ -535,7 +568,7 @@ const InkManager = (props) => {
           content: updateDataChuaDuyet,
         };
 
-        let jwtToken = await encodeDataToJWT(DataPhieuValues, secretKey);
+        let jwtToken = await handleEncodeDuyet(DataPhieuValues);
 
         try {
           await axios.get(
@@ -766,7 +799,7 @@ const InkManager = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" ? (
+          {role === "Người duyệt" || role === "Người nhập và xuất" ? (
             <>
               {" "}
               <Link to="/danhsachmucindaxuat">
@@ -780,7 +813,7 @@ const InkManager = (props) => {
             <></>
           )}
 
-          {role === "Người duyệt" ? (
+          {role === "Người duyệt" || role === "Người nhập và xuất" ? (
             <>
               <div className="dropdown me-2">
                 <button
@@ -837,14 +870,19 @@ const InkManager = (props) => {
             }}
           />
         </div>
-
-        <div className="d-flex justify-content-between">
-          <h5 className="mt-1">DANH SÁCH CÁC PHIẾU XUẤT</h5>
-        </div>
-
-        <div className="" style={{ marginBottom: "150px" }}>
-          <MaterialReactTable table={tablePhieuXuat} />
-        </div>
+        {role === "Người nhập không xuất" ? (
+          <></>
+        ) : (
+          <>
+            {" "}
+            <div className="d-flex justify-content-between">
+              <h5 className="mt-1">DANH SÁCH CÁC PHIẾU XUẤT</h5>
+            </div>
+            <div className="" style={{ marginBottom: "150px" }}>
+              <MaterialReactTable table={tablePhieuXuat} />
+            </div>
+          </>
+        )}
       </div>
     </>
   );

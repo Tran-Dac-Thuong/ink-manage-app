@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./PrintTemplateTonKho.scss";
-import { QRCode, Space } from "antd";
 
 export const PrintTemplateTonKho = React.forwardRef((props, ref) => {
   const dataInkPrint = props.data ? props.data : [];
@@ -31,7 +30,7 @@ export const PrintTemplateTonKho = React.forwardRef((props, ref) => {
         ? "005 (Đen)"
         : qrCode === "8885007023441"
         ? "774 (Đen)"
-        : qrCode.substring(0, 3); // Lấy ba ký tự đầu của mã QR
+        : dataInkPrint[i].tenmuc; // Lấy ba ký tự đầu của mã QR
 
     // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
     if (grouped[prefix]) {

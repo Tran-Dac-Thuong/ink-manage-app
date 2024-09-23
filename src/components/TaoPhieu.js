@@ -6,18 +6,18 @@ import {
   useMaterialReactTable,
 } from "material-react-table";
 import axios from "axios";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { QuestionCircleOutlined, UserOutlined } from "@ant-design/icons";
 import { Box, Tooltip } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonBootstrap from "react-bootstrap/Button";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import * as jose from "jose";
 import { Helmet } from "react-helmet";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import fontPath from "../fonts/Roboto-Black.ttf";
+import Dropdown from "react-bootstrap/Dropdown";
 
 const CreatePhieu = (props) => {
   const [dataLoaiPhieu, setDataLoaiPhieu] = useState([
@@ -31,6 +31,16 @@ const CreatePhieu = (props) => {
   const [khoaPhong, setKhoaPhong] = useState([]);
   const [role, setRole] = useState("");
   const [chonPhieu, setChonPhieu] = useState(false);
+  const [tendangnhap, setTendangnhap] = useState("");
+  const [encodeWorkerTaoPhieu] = useState(
+    () => new Worker("encodeWorkerTaoPhieu.js")
+  );
+
+  const [decodeWorkerLoginInfo] = useState(
+    () => new Worker("decodeWorkerLoginInfo.js")
+  );
+  const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
+  const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -44,43 +54,58 @@ const CreatePhieu = (props) => {
 
   const [loadingTaoPhieu, setLoadingTaoPhieu] = useState(true);
 
-  const secretKey = "your-secret-key"; // Thay thế bằng khóa bí mật của bạn
-
   const navigate = useNavigate();
 
-  const decodeJWT = async (token, secretKey) => {
-    try {
-      const secret = new TextEncoder().encode(secretKey);
-      const { payload } = await jose.jwtVerify(token, secret);
-      return payload;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleEncodeTaoPhieu = (data) => {
+    return new Promise((resolve, reject) => {
+      if (encodeWorkerTaoPhieu) {
+        encodeWorkerTaoPhieu.postMessage(data);
+        encodeWorkerTaoPhieu.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Mã hóa dữ liệu tạo phiếu không thành công");
+      }
+    });
   };
 
-  const encodeDataToJWT = async (data, secretKey, options = {}) => {
-    try {
-      const defaultOptions = { expiresIn: "10y" };
-      const finalOptions = { ...defaultOptions, ...options };
+  const handleDecodeLoginInfo = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerLoginInfo) {
+        decodeWorkerLoginInfo.postMessage(encodedString);
+        decodeWorkerLoginInfo.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã thông tin đăng nhập không thành công");
+      }
+    });
+  };
 
-      const secret = new TextEncoder().encode(secretKey);
-      const alg = "HS256";
+  const handleDecodeData = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerData) {
+        decodeWorkerData.postMessage(encodedString);
+        decodeWorkerData.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã danh sách không thành công");
+      }
+    });
+  };
 
-      const jwt = await new jose.SignJWT(data)
-        .setProtectedHeader({ alg })
-        .setExpirationTime(finalOptions.expiresIn)
-        .sign(secret);
-
-      return jwt;
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
+  const handleDecodeRole = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerRole) {
+        decodeWorkerRole.postMessage(encodedString);
+        decodeWorkerRole.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã vai trò không thành công");
+      }
+    });
   };
 
   useEffect(() => {
@@ -101,8 +126,9 @@ const CreatePhieu = (props) => {
         }
       } catch (error) {
         api["error"]({
-          message: "Thất bại",
-          description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+          message: "Lỗi",
+          description:
+            "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu khoa phòng",
         });
       }
     };
@@ -116,20 +142,38 @@ const CreatePhieu = (props) => {
         if (!token) {
           navigate("/dangnhap");
         } else {
-          let decodeLoginInfo = await decodeJWT(token, secretKey);
+          let decodeLoginInfo = await handleDecodeLoginInfo(token);
           if (decodeLoginInfo?.role === "Người duyệt") {
             navigate("/forbidden");
           }
           setHovaten(decodeLoginInfo?.hovaten);
+          setTendangnhap(decodeLoginInfo?.username);
         }
       };
       checkAlreadyLogin();
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      try {
+        let decodeToken = await handleDecodeRole(localStorage.getItem("token"));
+
+        setRole(decodeToken.role);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình lấy vai trò người dùng",
+        });
+      }
+    };
+
+    getRole();
   }, []);
 
   useEffect(() => {
@@ -145,16 +189,26 @@ const CreatePhieu = (props) => {
         let xuatArr = [];
         let nhapArr = [];
 
-        const decodedAllData = await Promise.all(
-          res.data.map(async (item) => {
-            let dataDecode = await decodeJWT(item.content, secretKey);
+        const listData = res?.data;
 
-            return {
+        const decodedAllData = [];
+        for (const item of listData) {
+          try {
+            let dataDecode = await handleDecodeData(item.content);
+
+            decodedAllData.push({
               ...item,
               decodedContent: dataDecode,
-            };
-          })
-        );
+            });
+          } catch (error) {
+            console.error("Error decoding item:", item, error);
+            api["error"]({
+              message: "Lỗi",
+              description:
+                "Đã xảy ra lỗi trong quá trình hiển thị danh sách phiếu",
+            });
+          }
+        }
 
         for (let i = 0; i < decodedAllData.length; i++) {
           if (
@@ -193,7 +247,7 @@ const CreatePhieu = (props) => {
         }
 
         for (let i = 0; i < res.data.length; i++) {
-          let decodeData = await decodeJWT(res.data[i].content, secretKey);
+          let decodeData = await handleDecodeData(res.data[i].content);
 
           const decodedLoaiphieu =
             decodeData?.content?.danhsachphieu?.loaiphieu;
@@ -241,8 +295,8 @@ const CreatePhieu = (props) => {
       }
     } catch (error) {
       api["error"]({
-        message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
+        message: "Lỗi",
+        description: "Đã xảy ra lỗi trong quá trình hiển thị danh sách phiếu",
       });
     }
   };
@@ -280,6 +334,7 @@ const CreatePhieu = (props) => {
         trangthai:
           values.chonloaiphieu === "Phiếu nhập" ? "Chưa duyệt" : "Chưa xuất",
         ngayduyetphieu: "",
+
         danhsachmucincuaphieu: [],
       },
       danhsachtonkho: {},
@@ -289,7 +344,7 @@ const CreatePhieu = (props) => {
       content: newTaoPhieuData,
     };
 
-    let jwtToken = await encodeDataToJWT(DataPhieuValues, secretKey);
+    let jwtToken = await handleEncodeTaoPhieu(DataPhieuValues);
 
     try {
       await axios.get(`http://172.16.0.53:8080/insert/${jwtToken}`, {
@@ -303,6 +358,7 @@ const CreatePhieu = (props) => {
       setTimeout(() => {
         setStatus("");
       }, 500);
+
       form.resetFields();
     } catch (error) {
       api["error"]({
@@ -402,6 +458,12 @@ const CreatePhieu = (props) => {
         description: "Đã xảy ra lỗi trong quá trình xuất file PDF",
       });
     }
+  };
+
+  const handleDangXuat = () => {
+    localStorage.removeItem("token");
+
+    navigate("/dangnhap");
   };
 
   const columns = useMemo(
@@ -659,24 +721,6 @@ const CreatePhieu = (props) => {
     ),
   });
 
-  const getRole = async () => {
-    try {
-      let decodeToken = await decodeJWT(
-        localStorage.getItem("token"),
-        secretKey
-      );
-
-      setRole(decodeToken.role);
-    } catch (error) {
-      api["error"]({
-        message: "Lỗi",
-        description: "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu",
-      });
-    }
-  };
-
-  getRole();
-
   return (
     <>
       {contextHolder}
@@ -688,7 +732,7 @@ const CreatePhieu = (props) => {
         <div className="text-center mt-5 mb-5">
           <img src="../img/logo2.png" alt="" />
         </div>
-        <div className="mt-2 mb-3">
+        <div className="mt-2 mb-3 d-flex">
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-success me-2">
               Trang chủ
@@ -744,6 +788,16 @@ const CreatePhieu = (props) => {
           ) : (
             <></>
           )}
+          <Dropdown data-bs-theme="dark">
+            <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
+              <UserOutlined />
+              {tendangnhap}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item onClick={handleDangXuat}>Đăng xuất</Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">TẠO PHIẾU</h4>
         {role === "Người nhập không xuất" ? (
