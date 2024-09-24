@@ -55,28 +55,30 @@ const XemPhieu = (props) => {
   // Duyệt qua từng phần tử trong mảng ban đầu
   for (let i = 0; i < data.length; i++) {
     const qrCode = data[i].qrcode;
-    const prefix =
-      qrCode === "8885007027876"
-        ? "003 (Đen)"
-        : qrCode === "8906049013198"
-        ? "003 (Vàng)"
-        : qrCode === "8885007027913"
-        ? "003 (Hồng)"
-        : qrCode === "8906049013174"
-        ? "003 (Xanh)"
-        : qrCode === "8885007020259"
-        ? "664 (Hồng)"
-        : qrCode === "8885007020242"
-        ? "664 (Xanh)"
-        : qrCode === "8885007020266"
-        ? "664 (Vàng)"
-        : qrCode === "8885007020235"
-        ? "664 (Đen)"
-        : qrCode === "8885007028255"
-        ? "005 (Đen)"
-        : qrCode === "8885007023441"
-        ? "774 (Đen)"
-        : data[i].tenmuc; // Lấy ba ký tự đầu của mã QR
+    // const prefix =
+    //   qrCode === "8885007027876"
+    //     ? "003 (Đen)"
+    //     : qrCode === "8906049013198"
+    //     ? "003 (Vàng)"
+    //     : qrCode === "8885007027913"
+    //     ? "003 (Hồng)"
+    //     : qrCode === "8906049013174"
+    //     ? "003 (Xanh)"
+    //     : qrCode === "8885007020259"
+    //     ? "664 (Hồng)"
+    //     : qrCode === "8885007020242"
+    //     ? "664 (Xanh)"
+    //     : qrCode === "8885007020266"
+    //     ? "664 (Vàng)"
+    //     : qrCode === "8885007020235"
+    //     ? "664 (Đen)"
+    //     : qrCode === "8885007028255"
+    //     ? "005 (Đen)"
+    //     : qrCode === "8885007023441"
+    //     ? "774 (Đen)"
+    //     : data[i].tenmuc; // Lấy ba ký tự đầu của mã QR
+
+    const prefix = data[i].tenmuc;
 
     // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
     if (grouped[prefix]) {

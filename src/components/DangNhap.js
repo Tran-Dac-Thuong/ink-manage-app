@@ -80,7 +80,7 @@ const DangNhap = (props) => {
       return;
     }
 
-    if (values.chonnhanvien === "Nguyễn Văn Hữu" && values.matkhau !== "123") {
+    if (values.chonnhanvien === "Nguyễn Văn Hữu" && values.matkhau !== "1234") {
       api["error"]({
         message: "Thất bại",
         description: "Mật khẩu không đúng. Vui lòng thử lại",
@@ -102,7 +102,7 @@ const DangNhap = (props) => {
       navigate("/");
     } else if (
       values.chonnhanvien === "Nguyễn Văn Hữu" &&
-      values.matkhau === "123"
+      values.matkhau === "1234"
     ) {
       let dataLogin = {
         username: values.chonnhanvien,

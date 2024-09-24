@@ -44,6 +44,8 @@ const NhapMuc = (props) => {
 
   const [chonLoaiMuc, setChonLoaiMuc] = useState("");
 
+  const [allInkLists, setAllInkLists] = useState([]);
+
   const [role, setRole] = useState("");
 
   const navigate = useNavigate();
@@ -235,6 +237,7 @@ const NhapMuc = (props) => {
         let dataAfterEncode = [];
         let xuatArr = [];
         let nhapArr = [];
+        let allInks = [];
 
         const listData = res?.data;
 
@@ -327,10 +330,29 @@ const NhapMuc = (props) => {
           }
         }
 
+        for (const item of decodedAllData) {
+          if (
+            item.decodedContent?.content?.danhsachphieu
+              ?.danhsachmucincuaphieu &&
+            item.decodedContent?.content?.danhsachphieu?.trangthai ===
+              "Chưa duyệt"
+          ) {
+            const inkList =
+              item.decodedContent.content.danhsachphieu.danhsachmucincuaphieu.map(
+                (ink) => ({
+                  ...ink,
+                  tenphieu: item.decodedContent.content.danhsachphieu.tenphieu,
+                })
+              );
+            allInks = [...allInks, ...inkList];
+          }
+        }
+
         setDataSizeTonKho(tonkhoRealArr);
         setDataDaXuat(xuatArr);
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
+        setAllInkLists(allInks);
       }
     } catch (error) {
       console.log(error);
@@ -479,7 +501,19 @@ const NhapMuc = (props) => {
       if (InkArray[i].qrcode === values.qrcode) {
         api["error"]({
           message: "Thất bại",
-          description: "Mực in này đã được thêm",
+          description: "Mực in này đã được thêm trong phiếu này",
+        });
+        form.resetFields();
+        return;
+      }
+    }
+
+    // Kiểm tra với tất cả danh sách mực in
+    for (let i = 0; i < allInkLists.length; i++) {
+      if (allInkLists[i].qrcode === values.qrcode) {
+        api["error"]({
+          message: "Thất bại",
+          description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
         });
         form.resetFields();
         return;
@@ -889,13 +923,13 @@ const NhapMuc = (props) => {
     navigate("/dangnhap");
   };
 
-  const handleChonLoaiMuc = (loaimuc) => {
-    if (loaimuc === "Mực cây") {
-      setChonLoaiMuc("Cây");
-    } else {
-      setChonLoaiMuc("Nước");
-    }
-  };
+  // const handleChonLoaiMuc = (loaimuc) => {
+  //   if (loaimuc === "Mực cây") {
+  //     setChonLoaiMuc("Cây");
+  //   } else {
+  //     setChonLoaiMuc("Nước");
+  //   }
+  // };
 
   const columns = useMemo(
     () => [
@@ -1115,7 +1149,27 @@ const NhapMuc = (props) => {
         <h4 className="text-center mt-5">THÊM MỚI MỰC IN CHO SỐ PHIẾU</h4>
         <h4 className="text-center text-danger mb-5">{dataPhieu?.sophieu}</h4>
 
-        <Select
+        <Form form={form} name="control-hooks" onFinish={handleThemMucInCay}>
+          <Form.Item
+            name="qrcode"
+            rules={[
+              {
+                required: true,
+                whitespace: true,
+                message: "Vui lòng nhập mực in",
+              },
+            ]}
+          >
+            <Input
+              autoFocus
+              placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
+              style={{
+                width: "100%",
+              }}
+            />
+          </Form.Item>
+        </Form>
+        {/* <Select
           className="mb-4"
           showSearch
           placeholder="Chọn loại mực"
@@ -1183,7 +1237,7 @@ const NhapMuc = (props) => {
               </Form.Item>
             </Form>
           </>
-        )}
+        )} */}
 
         <div className="d-flex justify-content-between">
           <h5 className="mt-3">CÁC MỰC IN ĐÃ THÊM</h5>
