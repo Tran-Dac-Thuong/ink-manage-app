@@ -813,7 +813,6 @@ const CreatePhieu = (props) => {
                 ]}
               >
                 <Select
-                  showSearch
                   placeholder="Chọn phiếu"
                   allowClear
                   style={{ width: "100%" }}
@@ -842,7 +841,6 @@ const CreatePhieu = (props) => {
                 ]}
               >
                 <Select
-                  showSearch
                   placeholder="Chọn phiếu"
                   allowClear
                   style={{ width: "100%" }}
