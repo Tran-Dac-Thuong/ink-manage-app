@@ -683,29 +683,42 @@ const InkManager = (props) => {
       ) : (
         <>
           {role === "Người duyệt" ? (
-            <ConfigProvider
-              theme={{
-                components: {
-                  Button: {
-                    colorPrimary: "#00B96B",
+            row.original.danhsachmucincuaphieu.length > 0 ? (
+              <ConfigProvider
+                theme={{
+                  components: {
+                    Button: {
+                      colorPrimary: "#00B96B",
 
-                    algorithm: true,
+                      algorithm: true,
+                    },
                   },
-                },
-              }}
-            >
-              <Popconfirm
-                title="Duyệt phiếu"
-                description="Bạn có chắc chắn muốn duyệt phiếu này không?"
-                onConfirm={() => handleDuyet(row)}
-                cancelText="Không"
-                okText="Có"
+                }}
               >
-                <Button type="primary" htmlType="submit">
+                <Popconfirm
+                  title="Duyệt phiếu"
+                  description="Bạn có chắc chắn muốn duyệt phiếu này không?"
+                  onConfirm={() => handleDuyet(row)}
+                  cancelText="Không"
+                  okText="Có"
+                >
+                  <Button type="primary" htmlType="submit">
+                    Duyệt
+                  </Button>
+                </Popconfirm>
+              </ConfigProvider>
+            ) : (
+              <>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  disabled
+                  title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi duyệt"
+                >
                   Duyệt
                 </Button>
-              </Popconfirm>
-            </ConfigProvider>
+              </>
+            )
           ) : (
             <></>
           )}
