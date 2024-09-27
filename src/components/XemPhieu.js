@@ -142,6 +142,7 @@ const XemPhieu = (props) => {
   return (
     <>
       {contextHolder}
+
       <Helmet>
         <meta charSet="utf-8" />
         <title>Xem phiếu</title>
@@ -216,23 +217,41 @@ const XemPhieu = (props) => {
                 </h5>
               </div>
             </div>
-            <div className="mb-3">
-              <ConfigProvider
-                theme={{
-                  components: {
-                    Button: {
-                      colorPrimary: "#00B96B",
-                      algorithm: true,
-                    },
-                  },
-                }}
-              >
-                <Button type="primary" htmlType="submit" onClick={handlePrint}>
-                  <PrinterFilled />
-                  In phiếu
-                </Button>
-              </ConfigProvider>
-            </div>
+            {result.length > 0 ? (
+              <>
+                {" "}
+                <div className="mb-3">
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Button: {
+                          colorPrimary: "#00B96B",
+                          algorithm: true,
+                        },
+                      },
+                    }}
+                  >
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      onClick={handlePrint}
+                    >
+                      <PrinterFilled />
+                      In phiếu
+                    </Button>
+                  </ConfigProvider>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <Button type="primary" htmlType="submit" disabled>
+                    <PrinterFilled />
+                    In phiếu
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <>
@@ -282,23 +301,40 @@ const XemPhieu = (props) => {
                 </h5>
               </div>
             </div>
-            <div className="mb-3">
-              <ConfigProvider
-                theme={{
-                  components: {
-                    Button: {
-                      colorPrimary: "#00B96B",
-                      algorithm: true,
-                    },
-                  },
-                }}
-              >
-                <Button type="primary" htmlType="submit" onClick={handlePrint}>
-                  <PrinterFilled />
-                  In phiếu
-                </Button>
-              </ConfigProvider>
-            </div>
+            {result.length > 0 ? (
+              <>
+                <div className="mb-3">
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Button: {
+                          colorPrimary: "#00B96B",
+                          algorithm: true,
+                        },
+                      },
+                    }}
+                  >
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      onClick={handlePrint}
+                    >
+                      <PrinterFilled />
+                      In phiếu
+                    </Button>
+                  </ConfigProvider>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-3">
+                  <Button type="primary" htmlType="submit" disabled>
+                    <PrinterFilled />
+                    In phiếu
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         )}
         <MaterialReactTable table={table} />
