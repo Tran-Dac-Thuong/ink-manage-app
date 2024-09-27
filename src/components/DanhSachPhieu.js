@@ -720,7 +720,26 @@ const InkManager = (props) => {
               </>
             )
           ) : (
-            <></>
+            <>
+              {role === "Người nhập không xuất" ||
+              role === "Người nhập và xuất" ? (
+                <>
+                  {" "}
+                  <Link
+                    to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+                    state={{
+                      dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                    }}
+                  >
+                    <Button type="primary" htmlType="submit">
+                      Xem
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <></>
+              )}
+            </>
           )}
         </>
       ),

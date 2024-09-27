@@ -185,18 +185,27 @@ const XemPhieu = (props) => {
                     {dataXemPhieu?.ngaytaophieu}
                   </span>
                 </h5>
-                <h5>
-                  NGƯỜI DUYỆT PHIẾU:{" "}
-                  <span className="text-danger">
-                    {dataXemPhieu?.nguoiduyetphieu}
-                  </span>
-                </h5>
-                <h5>
-                  THỜI GIAN DUYỆT PHIẾU:{" "}
-                  <span className="text-danger">
-                    {dataXemPhieu?.ngayduyetphieu}
-                  </span>
-                </h5>
+                {dataXemPhieu?.nguoiduyetphieu === "none" ||
+                dataXemPhieu?.ngayduyetphieu === "none" ? (
+                  <></>
+                ) : (
+                  <>
+                    {" "}
+                    <h5>
+                      NGƯỜI DUYỆT PHIẾU:{" "}
+                      <span className="text-danger">
+                        {dataXemPhieu?.nguoiduyetphieu}
+                      </span>
+                    </h5>
+                    <h5>
+                      THỜI GIAN DUYỆT PHIẾU:{" "}
+                      <span className="text-danger">
+                        {dataXemPhieu?.ngayduyetphieu}
+                      </span>
+                    </h5>
+                  </>
+                )}
+
                 <h5>
                   MÃ SỐ PHIẾU:{" "}
                   <span className="text-danger">{dataXemPhieu?.id}</span>
