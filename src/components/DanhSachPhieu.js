@@ -672,7 +672,7 @@ const InkManager = (props) => {
               ) : (
                 <>
                   <Button
-                    title="Không thể duyệt phiếu này do một hoặc nhiều mực in trong phiếu này đã được xuất khỏi kho."
+                    title="Không thể hủy duyệt phiếu này do một hoặc nhiều mực in trong phiếu này đã được xuất khỏi kho."
                     type="primary"
                     disabled
                   >
