@@ -19,7 +19,6 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import fontPath from "../fonts/Roboto-Black.ttf";
 import Dropdown from "react-bootstrap/Dropdown";
-import { Option } from "antd/es/mentions";
 
 const NhapMuc = (props) => {
   const [status, setStatus] = useState("");
@@ -41,8 +40,6 @@ const NhapMuc = (props) => {
   const [rowSelection, setRowSelection] = useState({});
 
   const [tendangnhap, setTendangnhap] = useState("");
-
-  const [chonLoaiMuc, setChonLoaiMuc] = useState("");
 
   const [allInkLists, setAllInkLists] = useState([]);
 
@@ -191,9 +188,7 @@ const NhapMuc = (props) => {
           navigate("/dangnhap");
         } else {
           let decodeLoginInfo = await handleDecodeLoginInfo(token);
-          if (decodeLoginInfo?.role === "Người duyệt") {
-            navigate("/forbidden");
-          }
+
           setTendangnhap(decodeLoginInfo?.username);
         }
       };
@@ -497,6 +492,26 @@ const NhapMuc = (props) => {
   const handleThemMucInCay = async (values) => {
     let InkArray = [...data] ? [...data] : [];
 
+    let timestamp = Date.now();
+
+    let date = new Date(timestamp);
+
+    let day = date.getDate();
+
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let seconds = date.getSeconds();
+
+    let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+
+    const pattern = /(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/;
+    const match = currentTime.match(pattern);
+
+    const [, ngay, thang, nam, gio, phut, giay] = match.map(Number);
+
     for (let i = 0; i < InkArray.length; i++) {
       if (InkArray[i].qrcode === values.qrcode) {
         api["error"]({
@@ -558,6 +573,14 @@ const NhapMuc = (props) => {
           qrcode: values.qrcode,
           loaiphieu: dataPhieu?.loaiphieu,
           tenphieu: dataPhieu?.tenphieu,
+          thoigiannhapmucin: currentTime,
+          nguoinhapmucin: tendangnhap,
+          ngay: ngay,
+          thang: thang,
+          nam: nam,
+          gio: gio,
+          phut: phut,
+          giay: giay,
           inkId: generateRandomEightDigitNumber(),
         };
 
@@ -610,146 +633,6 @@ const NhapMuc = (props) => {
         message: "Thất bại",
         description:
           "Vui lòng nhập đúng định dạng và mã mực in phải đủ 8 ký tự",
-      });
-    }
-
-    form.resetFields();
-  };
-
-  const handleThemMucInNuoc = async (values) => {
-    let InkArray = [...data] ? [...data] : [];
-
-    if (!isValidNumericString(values.qrcode)) {
-      api["error"]({
-        message: "Thất bại",
-        description: "Mã mực in không đúng định dạng",
-      });
-      form.resetFields();
-      return;
-    }
-
-    for (let i = 0; i < InkArray.length; i++) {
-      if (InkArray[i].qrcode === values.qrcode) {
-        api["error"]({
-          message: "Thất bại",
-          description: "Mực in này đã được thêm",
-        });
-        form.resetFields();
-        return;
-      }
-    }
-
-    let existsInkTonKho = dataTonKho.find(
-      (item) => item.qrcode === values.qrcode
-    );
-
-    if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
-      api["error"]({
-        message: "Thất bại",
-        description: "Mực in này không có trong kho để xuất",
-      });
-      form.resetFields();
-      return;
-    }
-
-    if (existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu nhập") {
-      api["error"]({
-        message: "Thất bại",
-        description: "Mực in này đã có trong kho",
-      });
-      form.resetFields();
-      return;
-    }
-
-    let insertMucIn = {
-      tenmuc:
-        values.qrcode === "8885007027876"
-          ? "003 (Đen)"
-          : values.qrcode === "8906049013198"
-          ? "003 (Vàng)"
-          : values.qrcode === "8885007027913"
-          ? "003 (Hồng)"
-          : values.qrcode === "8906049013174"
-          ? "003 (Xanh)"
-          : values.qrcode === "8885007020259"
-          ? "664 (Hồng)"
-          : values.qrcode === "8885007020242"
-          ? "664 (Xanh)"
-          : values.qrcode === "8885007020266"
-          ? "664 (Vàng)"
-          : values.qrcode === "8885007020235"
-          ? "664 (Đen)"
-          : values.qrcode === "8885007028255"
-          ? "005 (Đen)"
-          : values.qrcode === "8885007023441" && "774 (Đen)",
-
-      mamuc:
-        values.qrcode === "8885007027876"
-          ? "8885007027876"
-          : values.qrcode === "8906049013198"
-          ? "8906049013198"
-          : values.qrcode === "8885007027913"
-          ? "8885007027913"
-          : values.qrcode === "8906049013174"
-          ? "8906049013174"
-          : values.qrcode === "8885007020259"
-          ? "8885007020259"
-          : values.qrcode === "8885007020242"
-          ? "8885007020242"
-          : values.qrcode === "8885007020266"
-          ? "8885007020266"
-          : values.qrcode === "8885007020235"
-          ? "8885007020235"
-          : values.qrcode === "8885007028255"
-          ? "8885007028255"
-          : values.qrcode === "8885007023441" && "8885007023441",
-
-      soluong: 1,
-      qrcode: values.qrcode,
-      loaiphieu: dataPhieu?.loaiphieu,
-      tenphieu: dataPhieu?.tenphieu,
-      inkId: generateRandomEightDigitNumber(),
-    };
-
-    InkArray.push(insertMucIn);
-
-    let newTaoPhieuData = {
-      danhsachphieu: {
-        loaiphieu: dataPhieu?.loaiphieu,
-        tenphieu: dataPhieu?.tenphieu,
-        ngaytaophieu: dataPhieu?.ngaytaophieu,
-        nguoitaophieu: dataPhieu?.nguoitaophieu,
-        khoaphongxuatmuc:
-          dataPhieu?.loaiphieu === "Phiếu nhập" ? "" : dataPhieu?.khoaphong,
-        trangthai:
-          dataPhieu?.loaiphieu === "Phiếu nhập" ? "Chưa duyệt" : "Chưa xuất",
-        ngayduyetphieu: "",
-        danhsachmucincuaphieu: InkArray,
-      },
-      danhsachtonkho: {},
-    };
-    let DataPhieuValues = {
-      content: newTaoPhieuData,
-    };
-
-    let jwtToken = await handleEncodeNhapMucInNuoc(DataPhieuValues);
-    try {
-      await axios.get(
-        `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
-        {
-          mode: "cors",
-        }
-      );
-      api["success"]({
-        message: "Thành công",
-        description: "Nhập mực in vào phiếu thành công",
-      });
-
-      setStatus(randomString());
-    } catch (error) {
-      api["error"]({
-        message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình nhập mực in",
       });
     }
 
@@ -865,7 +748,8 @@ const NhapMuc = (props) => {
           "Mã QRCode": rowData[i].qrcode,
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
-          "Số lượng": rowData[i].soluong,
+          "Thời gian nhập mực in": rowData[i].thoigiannhapmucin,
+          "Người nhập mực in": rowData[i].nguoinhapmucin,
         };
 
         configDataArr.push(configData);
@@ -900,11 +784,22 @@ const NhapMuc = (props) => {
       doc.setFont("Roboto");
 
       const tableData = rows.map((row) => Object.values(row.original));
-      const tableHeaders = columns.map((c) => c.header);
+      const tableHeaders = ["STT", ...columns.map((c) => c.header)];
+
+      let rearrangedArray = tableData.map((arr, i) => [
+        i + 1,
+        arr[0],
+        arr[1],
+        arr[6],
+        arr[7],
+        arr[4],
+        arr[5],
+        arr[8],
+      ]);
 
       autoTable(doc, {
         head: [tableHeaders],
-        body: tableData,
+        body: rearrangedArray,
         styles: { font: "Roboto", fontStyle: "normal" },
       });
 
@@ -923,14 +818,6 @@ const NhapMuc = (props) => {
     navigate("/dangnhap");
   };
 
-  // const handleChonLoaiMuc = (loaimuc) => {
-  //   if (loaimuc === "Mực cây") {
-  //     setChonLoaiMuc("Cây");
-  //   } else {
-  //     setChonLoaiMuc("Nước");
-  //   }
-  // };
-
   const columns = useMemo(
     () => [
       {
@@ -944,9 +831,15 @@ const NhapMuc = (props) => {
         header: "Mã mực",
         size: 150,
       },
+
       {
-        accessorKey: "soluong",
-        header: "Số lượng",
+        accessorKey: "thoigiannhapmucin",
+        header: "Thời gian nhập mực in",
+        size: 200,
+      },
+      {
+        accessorKey: "nguoinhapmucin",
+        header: "Người nhập mực in",
         size: 150,
       },
     ],
@@ -1095,22 +988,16 @@ const NhapMuc = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" ? (
+
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
+
+          {role === "Người duyệt" || role === "Người xuất" ? (
             <>
-              {" "}
-              <Link to="/danhsachmucindaxuat">
-                <button type="button" className="btn btn-danger me-2">
-                  Đã xuất{" "}
-                  <span class="badge bg-success">{dataDaXuat.length}</span>
-                </button>
-              </Link>
-            </>
-          ) : (
-            <></>
-          )}
-          {role === "Người duyệt" ? (
-            <>
-              <div className="dropdown mt-2">
+              <div className="dropdown me-2">
                 <button
                   type="button"
                   className="btn btn-primary dropdown-toggle"
@@ -1169,75 +1056,6 @@ const NhapMuc = (props) => {
             />
           </Form.Item>
         </Form>
-        {/* <Select
-          className="mb-4"
-          showSearch
-          placeholder="Chọn loại mực"
-          allowClear
-          style={{ width: "100%" }}
-          onSelect={(event) => handleChonLoaiMuc(event)}
-        >
-          <Option value="Mực cây">Mực cây</Option>;
-          <Option value="Mực nước">Mực nước</Option>;
-        </Select>
-        {chonLoaiMuc === "Cây" && (
-          <>
-            {" "}
-            <Form
-              form={form}
-              name="control-hooks"
-              onFinish={handleThemMucInCay}
-            >
-              <Form.Item
-                name="qrcode"
-                rules={[
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: "Vui lòng nhập mực in",
-                  },
-                ]}
-              >
-                <Input
-                  autoFocus
-                  placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
-                  style={{
-                    width: "100%",
-                  }}
-                />
-              </Form.Item>
-            </Form>
-          </>
-        )}
-        {chonLoaiMuc === "Nước" && (
-          <>
-            {" "}
-            <Form
-              form={form}
-              name="control-hooks"
-              onFinish={handleThemMucInNuoc}
-            >
-              <Form.Item
-                name="qrcode"
-                rules={[
-                  {
-                    required: true,
-                    whitespace: true,
-                    message: "Vui lòng nhập mực in",
-                  },
-                ]}
-              >
-                <Input
-                  autoFocus
-                  placeholder="Nhập mực in"
-                  style={{
-                    width: "100%",
-                  }}
-                />
-              </Form.Item>
-            </Form>
-          </>
-        )} */}
 
         <div className="d-flex justify-content-between">
           <h5 className="mt-3">CÁC MỰC IN ĐÃ THÊM</h5>

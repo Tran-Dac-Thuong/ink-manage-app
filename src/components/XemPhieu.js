@@ -14,6 +14,8 @@ import { Helmet } from "react-helmet";
 const XemPhieu = (props) => {
   const [data, setData] = useState([]);
 
+  const [result, setResult] = useState([]);
+
   const [loadingXemPhieu, setLoadingXemPhieu] = useState(true);
 
   const [api, contextHolder] = notification.useNotification();
@@ -40,8 +42,6 @@ const XemPhieu = (props) => {
       if (!token) {
         navigate("/dangnhap");
       }
-      setData(state?.dataMucInCuaPhieu);
-      setLoadingXemPhieu(false);
     } catch (error) {
       api["error"]({
         message: "Thất bại",
@@ -50,50 +50,51 @@ const XemPhieu = (props) => {
     }
   }, []);
 
-  const grouped = {};
+  useEffect(() => {
+    const fetchDataXemPhieu = () => {
+      try {
+        const dataXemPhieu = [];
 
-  // Duyệt qua từng phần tử trong mảng ban đầu
-  for (let i = 0; i < data.length; i++) {
-    const qrCode = data[i].qrcode;
-    // const prefix =
-    //   qrCode === "8885007027876"
-    //     ? "003 (Đen)"
-    //     : qrCode === "8906049013198"
-    //     ? "003 (Vàng)"
-    //     : qrCode === "8885007027913"
-    //     ? "003 (Hồng)"
-    //     : qrCode === "8906049013174"
-    //     ? "003 (Xanh)"
-    //     : qrCode === "8885007020259"
-    //     ? "664 (Hồng)"
-    //     : qrCode === "8885007020242"
-    //     ? "664 (Xanh)"
-    //     : qrCode === "8885007020266"
-    //     ? "664 (Vàng)"
-    //     : qrCode === "8885007020235"
-    //     ? "664 (Đen)"
-    //     : qrCode === "8885007028255"
-    //     ? "005 (Đen)"
-    //     : qrCode === "8885007023441"
-    //     ? "774 (Đen)"
-    //     : data[i].tenmuc; // Lấy ba ký tự đầu của mã QR
+        for (const item of state?.dataMucInCuaPhieu) {
+          dataXemPhieu.push(item);
+        }
 
-    const prefix = data[i].tenmuc;
+        setData(dataXemPhieu);
 
-    // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
-    if (grouped[prefix]) {
-      grouped[prefix] += data[i].soluong;
-    } else {
-      // Nếu chưa có nhóm này, khởi tạo với số lượng hiện tại
-      grouped[prefix] = data[i].soluong;
-    }
-  }
+        // Xử lý dữ liệu ngay sau khi fetch
+        const grouped = {};
+        for (let i = 0; i < dataXemPhieu.length; i++) {
+          const qrCode = dataXemPhieu[i].qrcode;
+          const prefix = dataXemPhieu[i].tenmuc;
 
-  // Chuyển đổi đối tượng thành mảng kết quả
-  const result = [];
-  for (const prefix in grouped) {
-    result.push({ qrcode: prefix, soluong: grouped[prefix] });
-  }
+          if (grouped[prefix]) {
+            grouped[prefix] += dataXemPhieu[i].soluong;
+          } else {
+            grouped[prefix] = dataXemPhieu[i].soluong;
+          }
+        }
+
+        // Chuyển đổi đối tượng thành mảng kết quả
+        const result = [];
+        for (const prefix in grouped) {
+          result.push({ qrcode: prefix, soluong: grouped[prefix] });
+        }
+
+        // Lưu kết quả vào state hoặc sử dụng nó
+        setResult(result);
+        setLoadingXemPhieu(false);
+      } catch (error) {
+        console.log(error);
+
+        api["error"]({
+          message: "Lỗi",
+          description:
+            "Đã xảy ra lỗi trong quá trình hiển thị dữ liệu xem phiếu",
+        });
+      }
+    };
+    fetchDataXemPhieu();
+  }, []);
 
   const columns = useMemo(
     () => [

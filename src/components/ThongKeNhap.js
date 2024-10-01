@@ -29,7 +29,7 @@ const ThongKeNhap = (props) => {
   const [oneYearAgo, setOneYearAgo] = useState("");
   const [current, setCurrent] = useState("");
   const [tendangnhap, setTendangnhap] = useState("");
-
+  const [role, setRole] = useState("");
   const [decodeWorkerLoginInfo] = useState(
     () => new Worker("decodeWorkerLoginInfo.js")
   );
@@ -38,14 +38,14 @@ const ThongKeNhap = (props) => {
   const [api, contextHolder] = notification.useNotification();
 
   const [inkNameMapping, setInkNameMapping] = useState({
-    276: "haibaysau",
+    // 276: "haibaysau",
     "49A": "bonchinA",
-    337: "bababay",
+    // 337: "bababay",
     "78A": "baytamA",
     "052": "khongnamhai",
     319: "bamotchin",
     "12A": "muoihaiA",
-    "17A": "muoibayA",
+    // "17A": "muoibayA",
     // "003 (Đen)": "khongkhongbaden",
     // "003 (Vàng)": "khongkhongbavang",
     // "003 (Hồng)": "khongkhongbahong",
@@ -98,6 +98,19 @@ const ThongKeNhap = (props) => {
     });
   };
 
+  const handleDecodeRole = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerRole) {
+        decodeWorkerRole.postMessage(encodedString);
+        decodeWorkerRole.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã vai trò không thành công");
+      }
+    });
+  };
+
   const parseDate = (dateStr) => {
     let [day, month, year] = dateStr.split("-");
     // Lưu ý: tháng trong đối tượng Date bắt đầu từ 0
@@ -116,7 +129,7 @@ const ThongKeNhap = (props) => {
           navigate("/dangnhap");
         } else {
           let decodeToken = await handleDecodeLoginInfo(token);
-          if (decodeToken?.role === "Người nhập không xuất") {
+          if (decodeToken?.role === "Người nhập") {
             navigate("/forbidden");
           }
           setTendangnhap(decodeToken?.username);
@@ -129,6 +142,23 @@ const ThongKeNhap = (props) => {
         description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      try {
+        let decodeToken = await handleDecodeRole(localStorage.getItem("token"));
+
+        setRole(decodeToken.role);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình lấy vai trò người dùng",
+        });
+      }
+    };
+
+    getRole();
   }, []);
 
   useEffect(() => {
@@ -607,37 +637,47 @@ const ThongKeNhap = (props) => {
               Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>
             </button>
           </Link>
+
           <Link to="/danhsachmucindanhap">
             <button type="button" className="btn btn-success me-2">
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
+
           <Link to="/danhsachmucindaxuat">
             <button type="button" className="btn btn-danger me-2">
               Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
             </button>
           </Link>
-          <div className="dropdown me-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
+
+          {role === "Người duyệt" || role === "Người xuất" ? (
+            <>
+              <div className="dropdown me-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
+
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />

@@ -120,7 +120,7 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
               <strong>Người cấp phát</strong>
             </p>
             <br />
-            {props.nguoilamphieu}
+            Phòng Công Nghệ Thông Tin
           </div>
         </div>
       </div>

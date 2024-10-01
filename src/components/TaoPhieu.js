@@ -7,7 +7,7 @@ import {
 } from "material-react-table";
 import axios from "axios";
 import { QuestionCircleOutlined, UserOutlined } from "@ant-design/icons";
-import { Box, Tooltip } from "@mui/material";
+import { Box, FormControlLabel, Switch, Tooltip } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import ButtonBootstrap from "react-bootstrap/Button";
 import jsPDF from "jspdf";
@@ -53,6 +53,11 @@ const CreatePhieu = (props) => {
   const [form] = Form.useForm();
 
   const [loadingTaoPhieu, setLoadingTaoPhieu] = useState(true);
+
+  const [filteredData, setFilteredData] = useState(data);
+
+  const [showPhieuNhap, setShowPhieuNhap] = useState(true);
+  const [showPhieuXuat, setShowPhieuXuat] = useState(true);
 
   const navigate = useNavigate();
 
@@ -135,6 +140,23 @@ const CreatePhieu = (props) => {
     fetchDataKhoaPhong();
   }, []);
 
+  const handleTogglePhieuNhap = () => {
+    setShowPhieuNhap(!showPhieuNhap);
+  };
+
+  const handleTogglePhieuXuat = () => {
+    setShowPhieuXuat(!showPhieuXuat);
+  };
+
+  useEffect(() => {
+    const newFilteredData = data.filter(
+      (item) =>
+        (showPhieuNhap && item.loaiphieu === "Phiếu nhập") ||
+        (showPhieuXuat && item.loaiphieu === "Phiếu xuất")
+    );
+    setFilteredData(newFilteredData);
+  }, [data, showPhieuNhap, showPhieuXuat]);
+
   useEffect(() => {
     try {
       const checkAlreadyLogin = async () => {
@@ -143,9 +165,7 @@ const CreatePhieu = (props) => {
           navigate("/dangnhap");
         } else {
           let decodeLoginInfo = await handleDecodeLoginInfo(token);
-          if (decodeLoginInfo?.role === "Người duyệt") {
-            navigate("/forbidden");
-          }
+
           setHovaten(decodeLoginInfo?.hovaten);
           setTendangnhap(decodeLoginInfo?.username);
         }
@@ -547,7 +567,7 @@ const CreatePhieu = (props) => {
 
   const table = useMaterialReactTable({
     columns,
-    data,
+    data: filteredData,
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
@@ -717,6 +737,27 @@ const CreatePhieu = (props) => {
           <FileDownloadIcon />
           Xuất file PDF
         </ButtonBootstrap>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showPhieuNhap}
+              onChange={handleTogglePhieuNhap}
+              color="primary"
+            />
+          }
+          label="Phiếu nhập"
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showPhieuXuat}
+              onChange={handleTogglePhieuXuat}
+              color="primary"
+            />
+          }
+          label="Phiếu xuất"
+        />
       </Box>
     ),
   });
@@ -748,22 +789,16 @@ const CreatePhieu = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" ? (
+
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
+
+          {role === "Người duyệt" || role === "Người xuất" ? (
             <>
-              {" "}
-              <Link to="/danhsachmucindaxuat">
-                <button type="button" className="btn btn-danger me-2">
-                  Đã xuất{" "}
-                  <span class="badge bg-success">{dataDaXuat.length}</span>
-                </button>
-              </Link>
-            </>
-          ) : (
-            <></>
-          )}
-          {role === "Người duyệt" ? (
-            <>
-              <div className="dropdown mt-2">
+              <div className="dropdown me-2">
                 <button
                   type="button"
                   className="btn btn-primary dropdown-toggle"
@@ -800,7 +835,7 @@ const CreatePhieu = (props) => {
           </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">TẠO PHIẾU</h4>
-        {role === "Người nhập không xuất" ? (
+        {role === "Người nhập" ? (
           <>
             <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
               <Form.Item

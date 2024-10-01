@@ -11,7 +11,6 @@ import { Button } from "antd";
 import { Box } from "@mui/material";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
-import { CheckAPI1 } from "./api/CheckAPI";
 
 const InkManager = (props) => {
   const [dataPhieuNhap, setDataPhieuNhap] = useState([]);
@@ -455,6 +454,15 @@ const InkManager = (props) => {
     return result;
   };
 
+  const coMucInDaXuat = (danhSachMucIn) => {
+    return danhSachMucIn.some((mucIn) => {
+      const mucInDaXuat = dataDaXuat.find(
+        (item) => item.qrcode === mucIn.qrcode
+      );
+      return mucInDaXuat && mucInDaXuat.soluong > 0;
+    });
+  };
+
   const handleDuyet = async (phieu) => {
     let currentPhieu = dataPhieuNhap.find(
       (item) => item.masophieu === phieu.original.masophieu
@@ -634,29 +642,45 @@ const InkManager = (props) => {
         <>
           {role === "Người duyệt" ? (
             <Box sx={{ display: "flex", gap: "1rem" }}>
-              <ConfigProvider
-                theme={{
-                  components: {
-                    Button: {
-                      colorPrimary: "#ff4d4f",
+              {!coMucInDaXuat(row.original.danhsachmucincuaphieu) ? (
+                <>
+                  {" "}
+                  <ConfigProvider
+                    theme={{
+                      components: {
+                        Button: {
+                          colorPrimary: "#ff4d4f",
 
-                      algorithm: true,
-                    },
-                  },
-                }}
-              >
-                <Popconfirm
-                  title="Hủy duyệt phiếu"
-                  description="Bạn có chắc chắn muốn hủy duyệt phiếu này không?"
-                  onConfirm={() => handleDuyet(row)}
-                  cancelText="Không"
-                  okText="Có"
-                >
-                  <Button type="primary" htmlType="submit">
+                          algorithm: true,
+                        },
+                      },
+                    }}
+                  >
+                    <Popconfirm
+                      title="Hủy duyệt phiếu"
+                      description="Bạn có chắc chắn muốn hủy duyệt phiếu này không?"
+                      onConfirm={() => handleDuyet(row)}
+                      cancelText="Không"
+                      okText="Có"
+                    >
+                      <Button type="primary" htmlType="submit">
+                        Hủy duyệt
+                      </Button>
+                    </Popconfirm>
+                  </ConfigProvider>
+                </>
+              ) : (
+                <>
+                  <Button
+                    title="Không thể duyệt phiếu này do một hoặc nhiều mực in trong phiếu này đã được xuất khỏi kho."
+                    type="primary"
+                    disabled
+                  >
                     Hủy duyệt
                   </Button>
-                </Popconfirm>
-              </ConfigProvider>
+                </>
+              )}
+
               <Link
                 to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/${row.original.nguoiduyetphieu}/${row.original.ngayduyetphieu}/none/${row.original.tenphieu}`}
                 state={{
@@ -749,8 +773,7 @@ const InkManager = (props) => {
             )
           ) : (
             <>
-              {role === "Người nhập không xuất" ||
-              role === "Người nhập và xuất" ? (
+              {role === "Người nhập" || role === "Người xuất" ? (
                 <>
                   {" "}
                   <Link
@@ -819,7 +842,12 @@ const InkManager = (props) => {
           </Button>
         </Link>
       ) : (
-        <Button type="primary" htmlType="submit" disabled>
+        <Button
+          title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi xem"
+          type="primary"
+          htmlType="submit"
+          disabled
+        >
           Xem
         </Button>
       ),
@@ -840,15 +868,12 @@ const InkManager = (props) => {
         <div className="mb-2"></div>
 
         <div className="mt-2 mb-3 d-flex">
-          {role === "Người duyệt" ? (
-            <></>
-          ) : (
-            <Link to="/taophieu">
-              <button type="button" className="btn btn-info me-2">
-                Tạo phiếu
-              </button>
-            </Link>
-          )}
+          <Link to="/taophieu">
+            <button type="button" className="btn btn-info me-2">
+              Tạo phiếu
+            </button>
+          </Link>
+
           <Link to="/tonkho">
             <button type="button" className="btn btn-warning me-2">
               Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>
@@ -859,21 +884,14 @@ const InkManager = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" || role === "Người nhập và xuất" ? (
-            <>
-              {" "}
-              <Link to="/danhsachmucindaxuat">
-                <button type="button" className="btn btn-danger me-2">
-                  Đã xuất{" "}
-                  <span class="badge bg-success">{dataDaXuat.length}</span>
-                </button>
-              </Link>
-            </>
-          ) : (
-            <></>
-          )}
 
-          {role === "Người duyệt" || role === "Người nhập và xuất" ? (
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
+
+          {role === "Người duyệt" || role === "Người xuất" ? (
             <>
               <div className="dropdown me-2">
                 <button
@@ -930,7 +948,7 @@ const InkManager = (props) => {
             }}
           />
         </div>
-        {role === "Người nhập không xuất" ? (
+        {role === "Người nhập" ? (
           <></>
         ) : (
           <>

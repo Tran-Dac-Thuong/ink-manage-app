@@ -40,6 +40,7 @@ const ThongKeXuat = (props) => {
   const [oneYearAgo, setOneYearAgo] = useState("");
   const [current, setCurrent] = useState("");
   const [tendangnhap, setTendangnhap] = useState("");
+  const [role, setRole] = useState("");
   const [decodeWorkerLoginInfo] = useState(
     () => new Worker("decodeWorkerLoginInfo.js")
   );
@@ -47,14 +48,14 @@ const ThongKeXuat = (props) => {
   const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
   const [api, contextHolder] = notification.useNotification();
   const [inkNameMapping, setInkNameMapping] = useState({
-    276: "haibaysau",
+    // 276: "haibaysau",
     "49A": "bonchinA",
-    337: "bababay",
+    // 337: "bababay",
     "78A": "baytamA",
     "052": "khongnamhai",
     319: "bamotchin",
     "12A": "muoihaiA",
-    "17A": "muoibayA",
+    // "17A": "muoibayA",
     // "003 (Đen)": "khongkhongbaden",
     // "003 (Vàng)": "khongkhongbavang",
     // "003 (Hồng)": "khongkhongbahong",
@@ -116,6 +117,19 @@ const ThongKeXuat = (props) => {
     });
   };
 
+  const handleDecodeRole = (encodedString) => {
+    return new Promise((resolve, reject) => {
+      if (decodeWorkerRole) {
+        decodeWorkerRole.postMessage(encodedString);
+        decodeWorkerRole.onmessage = function (e) {
+          resolve(e.data);
+        };
+      } else {
+        console.log("Giải mã vai trò không thành công");
+      }
+    });
+  };
+
   const parseDate = (dateStr) => {
     let [day, month, year] = dateStr.split("-");
     // Lưu ý: tháng trong đối tượng Date bắt đầu từ 0
@@ -134,7 +148,7 @@ const ThongKeXuat = (props) => {
           navigate("/dangnhap");
         } else {
           let decodeToken = await handleDecodeLoginInfo(token);
-          if (decodeToken?.role === "Người nhập không xuất") {
+          if (decodeToken?.role === "Người nhập") {
             navigate("/forbidden");
           }
           setTendangnhap(decodeToken?.username);
@@ -147,6 +161,23 @@ const ThongKeXuat = (props) => {
         description: "Đã xảy ra lỗi trong quá trình kiểm tra đăng nhập",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const getRole = async () => {
+      try {
+        let decodeToken = await handleDecodeRole(localStorage.getItem("token"));
+
+        setRole(decodeToken.role);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình lấy vai trò người dùng",
+        });
+      }
+    };
+
+    getRole();
   }, []);
 
   useEffect(() => {
@@ -547,7 +578,6 @@ const ThongKeXuat = (props) => {
           "Mã mực": rowData[i].mamuc,
           "Mã QRCode": rowData[i].qrcode,
           "Tên phiếu": rowData[i].tenphieu,
-          "Số lượng": rowData[i].soluong,
           "Xuất cho": rowData[i].khoaphongxuatmuc,
           "Đã xuất vào lúc": rowData[i].thoigianxuat,
         };
@@ -599,9 +629,9 @@ const ThongKeXuat = (props) => {
         arr[1],
         arr[3],
         arr[5],
-        arr[2],
         arr[8],
         arr[7],
+        arr[2],
       ]);
 
       autoTable(doc, {
@@ -632,7 +662,6 @@ const ThongKeXuat = (props) => {
           "Mã mực": rowData[i].mamuc,
           "Mã QRCode": rowData[i].qrcode,
           "Tên phiếu": rowData[i].tenphieu,
-          "Số lượng": rowData[i].soluong,
           "Xuất cho": rowData[i].khoaphongxuatmuc,
           "Đã xuất vào lúc": rowData[i].thoigianxuat,
         };
@@ -684,9 +713,9 @@ const ThongKeXuat = (props) => {
         arr[1],
         arr[3],
         arr[5],
-        arr[2],
         arr[8],
         arr[7],
+        arr[2],
         arr[4],
       ]);
 
@@ -738,11 +767,7 @@ const ThongKeXuat = (props) => {
         header: "Tên phiếu",
         size: 120,
       },
-      {
-        accessorKey: "soluong",
-        header: "Số lượng",
-        size: 120,
-      },
+
       {
         accessorKey: "khoaphongxuatmuc",
         header: "Xuất cho",
@@ -1003,27 +1028,35 @@ const ThongKeXuat = (props) => {
               Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
             </button>
           </Link>
-          <div className="dropdown me-2">
-            <button
-              type="button"
-              className="btn btn-primary dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              Thống kê
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <Link className="dropdown-item" to={"/thongkenhap"}>
-                  Thống kê nhập
-                </Link>
-              </li>
-              <li>
-                <Link className="dropdown-item" to={"/thongkexuat"}>
-                  Thống kê xuất
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {role === "Người duyệt" || role === "Người xuất" ? (
+            <>
+              {" "}
+              <div className="dropdown me-2">
+                <button
+                  type="button"
+                  className="btn btn-primary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                >
+                  Thống kê
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkenhap"}>
+                      Thống kê nhập
+                    </Link>
+                  </li>
+                  <li>
+                    <Link className="dropdown-item" to={"/thongkexuat"}>
+                      Thống kê xuất
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
+
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />

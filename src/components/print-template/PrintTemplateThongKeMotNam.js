@@ -30,7 +30,6 @@ export const PrintTemplateThongKeMotNam = React.forwardRef((props, ref) => {
               <th>Mã mực</th>
               <th>Mã QRCode</th>
               <th>Tên phiếu</th>
-              <th>Số lượng</th>
               <th>Xuất cho</th>
               <th>Đã xuất vào lúc</th>
             </tr>
@@ -47,7 +46,6 @@ export const PrintTemplateThongKeMotNam = React.forwardRef((props, ref) => {
                       <td>{item.mamuc}</td>
                       <td>{item.qrcode}</td>
                       <td>{item.tenphieu}</td>
-                      <td>{item.soluong}</td>
                       <td>{item.khoaphongxuatmuc}</td>
                       <td>{item.thoigianxuat}</td>
                     </tr>

@@ -228,8 +228,8 @@ const DanhSachMucInDaXuat = (props) => {
           "Mã QRCode": rowData[i].qrcode,
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
-          "Số lượng": rowData[i].soluong,
-          "Tên phiếu": rowData[i].tenphieu,
+          "Tên khoa phòng": rowData[i].khoaphongxuatmuc,
+          "Thời gian xuất": rowData[i].thoigianxuat,
         };
 
         configDataArr.push(configData);
@@ -273,15 +273,18 @@ const DanhSachMucInDaXuat = (props) => {
 
       const tableHeaders = columns.map((c) => c.header);
 
-      let rearrangedArray = tableData.map((arr) => [
-        arr[9],
+      let rearrangedArray = tableData.map((arr, i) => [
+        i + 1,
         arr[0],
         arr[1],
-        arr[5],
-        arr[2],
+        arr[8],
+        arr[7],
         arr[6],
         arr[3],
+        arr[2],
         arr[4],
+        arr[5],
+        arr[9],
       ]);
 
       autoTable(doc, {
@@ -323,13 +326,13 @@ const DanhSachMucInDaXuat = (props) => {
         size: 150,
       },
       {
-        accessorKey: "tenphieu",
-        header: "Tên phiếu",
+        accessorKey: "khoaphongxuatmuc",
+        header: "Tên khoa phòng",
         size: 150,
       },
       {
-        accessorKey: "soluong",
-        header: "Số lượng",
+        accessorKey: "thoigianxuat",
+        header: "Thời gian xuất mực",
         size: 150,
       },
     ],
@@ -414,7 +417,7 @@ const DanhSachMucInDaXuat = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" ? (
+          {role === "Người duyệt" || role === "Người xuất" ? (
             <>
               <div className="dropdown me-2">
                 <button

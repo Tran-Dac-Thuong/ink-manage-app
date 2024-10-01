@@ -243,8 +243,13 @@ const TonKho = (props) => {
         size: 150,
       },
       {
-        accessorKey: "soluong",
-        header: "Số lượng",
+        accessorKey: "thoigiannhapmucin",
+        header: "Thời gian nhập mực in",
+        size: 200,
+      },
+      {
+        accessorKey: "nguoinhapmucin",
+        header: "Người nhập mực in",
         size: 150,
       },
     ],
@@ -263,9 +268,9 @@ const TonKho = (props) => {
           "Mã QRCode": rowData[i].qrcode,
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
-          "Số lượng": rowData[i].soluong,
-          "Loại phiếu": rowData[i].loaiphieu,
           "Tên phiếu": rowData[i].tenphieu,
+          "Thời gian nhập mực in": rowData[i].thoigiannhapmucin,
+          "Người nhập mực in": rowData[i].nguoinhapmucin,
         };
 
         configDataArr.push(configData);
@@ -297,6 +302,15 @@ const TonKho = (props) => {
     }
   };
 
+  const isNumber = (value) => {
+    return typeof value === "number" && !isNaN(value);
+  };
+
+  const containsLetter = (str) => {
+    let regex = /[a-zA-Z]/;
+    return regex.test(str);
+  };
+
   const handleExportRowsPDF = (rows) => {
     try {
       const doc = new jsPDF();
@@ -309,13 +323,15 @@ const TonKho = (props) => {
 
       const tableHeaders = columns.map((c) => c.header);
 
-      let rearrangedArray = tableData.map((arr) => [
-        arr[7],
+      let rearrangedArray = tableData.map((arr, i) => [
+        i + 1,
         arr[0],
         arr[1],
         arr[5],
+        !isNumber(arr[6]) ? arr[6] : "",
+        containsLetter(arr[7]) ? arr[7] : "",
+        arr[8],
         arr[2],
-        arr[6],
         arr[3],
         arr[4],
       ]);
@@ -407,21 +423,14 @@ const TonKho = (props) => {
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>
             </button>
           </Link>
-          {role === "Người duyệt" ? (
-            <>
-              {" "}
-              <Link to="/danhsachmucindaxuat">
-                <button type="button" className="btn btn-danger me-2">
-                  Đã xuất{" "}
-                  <span class="badge bg-success">{dataDaXuat.length}</span>
-                </button>
-              </Link>
-            </>
-          ) : (
-            <></>
-          )}
 
-          {role === "Người duyệt" ? (
+          <Link to="/danhsachmucindaxuat">
+            <button type="button" className="btn btn-danger me-2">
+              Đã xuất <span class="badge bg-success">{dataDaXuat.length}</span>
+            </button>
+          </Link>
+
+          {role === "Người duyệt" || role === "Người xuất" ? (
             <>
               <div className="dropdown me-2">
                 <button
