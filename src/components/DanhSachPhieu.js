@@ -11,6 +11,7 @@ import { Button } from "antd";
 import { Box } from "@mui/material";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
+import { CheckAPI1 } from "./api/CheckAPI";
 
 const InkManager = (props) => {
   const [dataPhieuNhap, setDataPhieuNhap] = useState([]);
@@ -138,6 +139,7 @@ const InkManager = (props) => {
   const FetchDataPhieu = async () => {
     try {
       let res = await axios.get(`http://172.16.0.53:8080/danh_sach`);
+
       if (res && res.data && Array.isArray(res.data)) {
         let tonkhoArr = [];
         let xuatArr = [];
@@ -508,6 +510,7 @@ const InkManager = (props) => {
               mode: "cors",
             }
           );
+
           api["success"]({
             message: "Thành công",
             description: "Phiếu này đã được hủy duyệt",
@@ -577,6 +580,7 @@ const InkManager = (props) => {
               mode: "cors",
             }
           );
+
           api["success"]({
             message: "Thành công",
             description: "Phiếu này đã được duyệt",
@@ -684,39 +688,63 @@ const InkManager = (props) => {
         <>
           {role === "Người duyệt" ? (
             row.original.danhsachmucincuaphieu.length > 0 ? (
-              <ConfigProvider
-                theme={{
-                  components: {
-                    Button: {
-                      colorPrimary: "#00B96B",
+              <Box sx={{ display: "flex", gap: "1rem" }}>
+                <ConfigProvider
+                  theme={{
+                    components: {
+                      Button: {
+                        colorPrimary: "#00B96B",
 
-                      algorithm: true,
+                        algorithm: true,
+                      },
                     },
-                  },
-                }}
-              >
-                <Popconfirm
-                  title="Duyệt phiếu"
-                  description="Bạn có chắc chắn muốn duyệt phiếu này không?"
-                  onConfirm={() => handleDuyet(row)}
-                  cancelText="Không"
-                  okText="Có"
+                  }}
+                >
+                  <Popconfirm
+                    title="Duyệt phiếu"
+                    description="Bạn có chắc chắn muốn duyệt phiếu này không?"
+                    onConfirm={() => handleDuyet(row)}
+                    cancelText="Không"
+                    okText="Có"
+                  >
+                    <Button type="primary" htmlType="submit">
+                      Duyệt
+                    </Button>
+                  </Popconfirm>
+                </ConfigProvider>
+                <Link
+                  to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+                  state={{
+                    dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                  }}
                 >
                   <Button type="primary" htmlType="submit">
-                    Duyệt
+                    Xem
                   </Button>
-                </Popconfirm>
-              </ConfigProvider>
+                </Link>
+              </Box>
             ) : (
               <>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  disabled
-                  title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi duyệt"
-                >
-                  Duyệt
-                </Button>
+                <Box>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    disabled
+                    title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi duyệt"
+                  >
+                    Duyệt
+                  </Button>
+                  <Link
+                    to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+                    state={{
+                      dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                    }}
+                  >
+                    <Button type="primary" htmlType="submit">
+                      Xem
+                    </Button>
+                  </Link>
+                </Box>
               </>
             )
           ) : (
