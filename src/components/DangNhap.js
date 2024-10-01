@@ -83,7 +83,10 @@ const DangNhap = (props) => {
       return;
     }
 
-    if (values.chonnhanvien === "Nguyễn Văn Hữu" && values.matkhau !== "1234") {
+    if (
+      values.chonnhanvien === "Phòng Công Nghệ Thông Tin" &&
+      values.matkhau !== "1234"
+    ) {
       api["error"]({
         message: "Thất bại",
         description: "Mật khẩu không đúng. Vui lòng thử lại",
@@ -107,7 +110,7 @@ const DangNhap = (props) => {
 
       navigate("/");
     } else if (
-      values.chonnhanvien === "Nguyễn Văn Hữu" &&
+      values.chonnhanvien === "Phòng Công Nghệ Thông Tin" &&
       values.matkhau === "1234"
     ) {
       let dataLogin = {
@@ -199,7 +202,9 @@ const DangNhap = (props) => {
               style={{ width: "100%" }}
             >
               <Option value="Công ty TNHH Ngọc">Công ty TNHH Ngọc</Option>
-              <Option value="Nguyễn Văn Hữu">Nguyễn Văn Hữu</Option>
+              <Option value="Phòng Công Nghệ Thông Tin">
+                Phòng Công Nghệ Thông Tin
+              </Option>
               {dataNhanVien.map((item, index) => {
                 return <Option value={item.HOTEN}>{item.HOTEN}</Option>;
               })}
