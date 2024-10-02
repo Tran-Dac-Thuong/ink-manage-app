@@ -863,7 +863,7 @@ const CreatePhieu = (props) => {
               </Form.Item>
             </Form>
           </>
-        ) : (
+        ) : role === "Người duyệt" ? (
           <>
             <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
               <Form.Item
@@ -884,6 +884,58 @@ const CreatePhieu = (props) => {
                   {dataLoaiPhieu.map((item, index) => {
                     return <Option value={item}>{item}</Option>;
                   })}
+                </Select>
+              </Form.Item>
+              {chonPhieu ? (
+                <Form.Item
+                  name="chonkhoaphong"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng chọn khoa phòng",
+                    },
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Chọn khoa phòng"
+                    allowClear
+                    style={{ width: "100%" }}
+                  >
+                    {khoaPhong.map((item, index) => {
+                      return <Option value={item}>{item}</Option>;
+                    })}
+                  </Select>
+                </Form.Item>
+              ) : (
+                <></>
+              )}
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Tạo phiếu
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        ) : (
+          <>
+            <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
+              <Form.Item
+                name="chonloaiphieu"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn loại phiếu",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Chọn phiếu"
+                  allowClear
+                  style={{ width: "100%" }}
+                  onSelect={(event) => handleSelect(event)}
+                >
+                  <Option value="Phiếu xuất">Phiếu xuất</Option>
                 </Select>
               </Form.Item>
               {chonPhieu ? (
