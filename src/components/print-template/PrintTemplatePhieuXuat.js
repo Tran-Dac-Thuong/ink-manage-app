@@ -56,8 +56,14 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
     <>
       <div className="print-preview_phieuxuat" ref={ref}>
         <div className="header_phieuxuat">
-          <div className="left-header_phieuxuat">
-            <img src="../../../../../../../../img/logo2.png" alt="" />
+          <div>
+            <div className="left-header_phieuxuat">
+              <img src="../../../../../../../../img/logo2.png" alt="" />
+            </div>
+            <br />
+            <span style={{ paddingLeft: "10px" }}>
+              PHÒNG CÔNG NGHỆ THÔNG TIN
+            </span>
           </div>
           <div
             className="right-header_phieuxuat"
@@ -66,22 +72,20 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
             <Space>
               <QRCode size={100} type="svg" value="Hello" />
             </Space>
-            <br />
-            {props.masophieu}
+            <div style={{ fontSize: "11px" }}>{props.masophieu}</div>
           </div>
         </div>
-
+        <br />
         <div className="date_phieuxuat">
-          <strong>
+          <i>
             Thành phố Hồ Chí Minh, ngày {date.getDate()} tháng{" "}
             {date.getMonth() + 1} năm {date.getFullYear()}
-          </strong>
+          </i>
         </div>
 
         <h4 className="title_phieuxuat">PHIẾU XUẤT MỰC IN</h4>
-        <h5 className="title_phieuxuat" style={{ textTransform: "uppercase" }}>
-          {props.khoaphong}
-        </h5>
+
+        <span>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
         <table className="ink-table_phieuxuat">
           <thead>
             <tr>
@@ -107,20 +111,48 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
               })}
           </tbody>
         </table>
+        <br />
+        <span>DANH SÁCH THÔNG TIN CHI TIẾT CỦA TỪNG MỰC IN</span>
+        <table className="ink-table_phieunhap">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Tên mực</th>
+              <th>Mã mực</th>
+              <th>Thời gian nhập mực in</th>
+              <th>Người nhập mực in</th>
+            </tr>
+          </thead>
+          <tbody>
+            {props.data &&
+              dataInkPrint.map((item, index) => {
+                return (
+                  <>
+                    <tr>
+                      <td>{index + 1}</td>
+                      <td>{item.tenmuc}</td>
+
+                      <td>{item.mamuc}</td>
+                      <td>{item.thoigiannhapmucin}</td>
+                      <td>{item.nguoinhapmucin}</td>
+                    </tr>
+                  </>
+                );
+              })}
+          </tbody>
+        </table>
 
         <div className="footer_phieuxuat">
           <div className="department_phieuxuat mt-3">
             <p>
-              <strong>Người nhận mực in</strong>
+              <strong>{props.khoaphong}</strong>
             </p>
           </div>
 
           <div className="signature_phieuxuat mt-3">
             <p>
-              <strong>Người cấp phát</strong>
+              <strong>{props.nguoilamphieu}</strong>
             </p>
-            <br />
-            Phòng Công Nghệ Thông Tin
           </div>
         </div>
       </div>

@@ -512,8 +512,18 @@ const NhapMuc = (props) => {
 
     const [, ngay, thang, nam, gio, phut, giay] = match.map(Number);
 
+    let res = await axios.post(
+      `http://172.16.0.53:8080/parse_name_id`,
+      { name_id: values.qrcode },
+      {
+        mode: "cors",
+      }
+    );
+
+    let dataInkDecode = res.data.name + "_" + res.data.id;
+
     for (let i = 0; i < InkArray.length; i++) {
-      if (InkArray[i].qrcode === values.qrcode) {
+      if (InkArray[i].qrcode === dataDecode) {
         api["error"]({
           message: "Thất bại",
           description: "Mực in này đã được thêm trong phiếu này",
@@ -525,7 +535,7 @@ const NhapMuc = (props) => {
 
     // Kiểm tra với tất cả danh sách mực in
     for (let i = 0; i < allInkLists.length; i++) {
-      if (allInkLists[i].qrcode === values.qrcode) {
+      if (allInkLists[i].qrcode === dataDecode) {
         api["error"]({
           message: "Thất bại",
           description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
@@ -535,9 +545,7 @@ const NhapMuc = (props) => {
       }
     }
 
-    let existsInkTonKho = dataTonKho.find(
-      (item) => item.qrcode === values.qrcode
-    );
+    let existsInkTonKho = dataTonKho.find((item) => item.qrcode === dataDecode);
 
     if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
       api["error"]({
@@ -570,7 +578,7 @@ const NhapMuc = (props) => {
           tenmuc: res.data.name,
           mamuc: res.data.id,
           soluong: 1,
-          qrcode: values.qrcode,
+          qrcode: dataInkDecode,
           loaiphieu: dataPhieu?.loaiphieu,
           tenphieu: dataPhieu?.tenphieu,
           thoigiannhapmucin: currentTime,
@@ -585,6 +593,7 @@ const NhapMuc = (props) => {
         };
 
         InkArray.push(insertMucIn);
+        // console.log(insertMucIn);
 
         let newTaoPhieuData = {
           danhsachphieu: {

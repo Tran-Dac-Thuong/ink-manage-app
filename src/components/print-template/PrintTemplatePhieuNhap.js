@@ -66,20 +66,20 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
             <Space>
               <QRCode size={100} type="svg" value="Hello" />
             </Space>
-            <br />
-            {props.masophieu}
+
+            <div style={{ fontSize: "11px" }}>{props.masophieu}</div>
           </div>
         </div>
-
+        <br />
         <div className="date_phieunhap">
-          <strong>
+          <i>
             Thành phố Hồ Chí Minh, ngày {date.getDate()} tháng{" "}
             {date.getMonth() + 1} năm {date.getFullYear()}
-          </strong>
+          </i>
         </div>
 
         <h4 className="title_phieunhap">PHIẾU NHẬP MỰC IN</h4>
-
+        <span>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
         <table className="ink-table_phieunhap">
           <thead>
             <tr>
@@ -105,19 +105,48 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
               })}
           </tbody>
         </table>
+        <br />
+        <span>DANH SÁCH THÔNG TIN CHI TIẾT CỦA TỪNG MỰC IN</span>
+        <table className="ink-table_phieunhap">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Tên mực</th>
+              <th>Mã mực</th>
+              <th>Thời gian nhập mực in</th>
+              <th>Người nhập mực in</th>
+            </tr>
+          </thead>
+          <tbody>
+            {props.data &&
+              dataInkPrint.map((item, index) => {
+                return (
+                  <>
+                    <tr>
+                      <td>{index + 1}</td>
+                      <td>{item.tenmuc}</td>
 
+                      <td>{item.mamuc}</td>
+                      <td>{item.thoigiannhapmucin}</td>
+                      <td>{item.nguoinhapmucin}</td>
+                    </tr>
+                  </>
+                );
+              })}
+          </tbody>
+        </table>
         <div className="footer_phieunhap">
           <div className="department_phieunhap mt-3">
             <p>
-              <strong>Đơn vị tiếp nhận ký tên</strong>
+              <strong>Phòng Công Nghệ Thông Tin</strong>
             </p>
           </div>
 
           <div className="signature_phieunhap mt-3">
             <p>
-              <strong>Người làm phiếu</strong>
+              <strong>Tên công ty</strong>
             </p>
-            <br />
+
             {props.nguoilamphieu}
           </div>
         </div>
