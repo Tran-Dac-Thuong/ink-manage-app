@@ -114,7 +114,7 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
               <th>Tên mực</th>
               <th>Mã mực</th>
               <th>Thời gian nhập mực in</th>
-              <th>Người nhập mực in</th>
+              <th>Ghi chú</th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +128,7 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
 
                       <td>{item.mamuc}</td>
                       <td>{item.thoigiannhapmucin}</td>
-                      <td>{item.nguoinhapmucin}</td>
+                      <td></td>
                     </tr>
                   </>
                 );
