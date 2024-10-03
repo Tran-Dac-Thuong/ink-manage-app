@@ -591,7 +591,8 @@ const CreatePhieu = (props) => {
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
         {row.original.loaiphieu === "Phiếu xuất" &&
-        row.original.trangthai === "Chưa xuất" ? (
+        row.original.trangthai === "Chưa xuất" &&
+        role === "Người xuất" ? (
           <Tooltip title="">
             <Link
               to={`/themmucin/${row.original.sophieu}/${
@@ -609,7 +610,8 @@ const CreatePhieu = (props) => {
           <></>
         )}
         {row.original.loaiphieu === "Phiếu nhập" &&
-        row.original.trangthai === "Chưa duyệt" ? (
+        row.original.trangthai === "Chưa duyệt" &&
+        role === "Người nhập" ? (
           <Tooltip title="">
             <Link
               to={`/themmucin/${row.original.sophieu}/${
@@ -627,7 +629,8 @@ const CreatePhieu = (props) => {
           <></>
         )}
         {row.original.loaiphieu === "Phiếu xuất" &&
-        row.original.trangthai === "Chưa xuất" ? (
+        row.original.trangthai === "Chưa xuất" &&
+        role === "Người xuất" ? (
           <Popconfirm
             title="Xóa phiếu"
             description="Bạn có chắc chắn muốn xóa phiếu này không?"
@@ -650,7 +653,8 @@ const CreatePhieu = (props) => {
           <></>
         )}
         {row.original.loaiphieu === "Phiếu nhập" &&
-        row.original.trangthai === "Chưa duyệt" ? (
+        row.original.trangthai === "Chưa duyệt" &&
+        role === "Người nhập" ? (
           <Popconfirm
             title="Xóa phiếu"
             description="Bạn có chắc chắn muốn xóa phiếu này không?"

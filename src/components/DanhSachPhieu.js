@@ -672,7 +672,7 @@ const InkManager = (props) => {
               ) : (
                 <>
                   <Button
-                    title="Không thể hủy duyệt phiếu này do một hoặc nhiều mực in trong phiếu này đã được xuất khỏi kho."
+                    title="Không thể hủy duyệt phiếu này do mực in trong phiếu này đã được xuất khỏi kho."
                     type="primary"
                     disabled
                   >
@@ -828,10 +828,10 @@ const InkManager = (props) => {
     },
     renderRowActions: ({ row, table }) =>
       row.original.loaiphieu === "Phiếu xuất" &&
-      row.original.trangthai === "Đã xuất" &&
+      // row.original.trangthai === "Đã xuất" &&
       row.original.danhsachmucincuaphieu.length > 0 ? (
         <Link
-          to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/${row.original.thoigianxuat}/${row.original.tenphieu}`}
+          to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
           state={{
             dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
             khoaphong: row.original.khoaphongxuatmuc,

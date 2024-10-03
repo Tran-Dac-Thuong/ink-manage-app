@@ -282,12 +282,20 @@ const XemPhieu = (props) => {
                     {dataXemPhieu?.ngaytaophieu}
                   </span>
                 </h5>
-                <h5>
-                  ĐÃ XUẤT VÀO LÚC:{" "}
-                  <span className="text-danger">
-                    {dataXemPhieu?.thoigianxuat}
-                  </span>
-                </h5>
+                {dataXemPhieu?.thoigianxuat === "none" ? (
+                  <></>
+                ) : (
+                  <>
+                    {" "}
+                    <h5>
+                      ĐÃ XUẤT VÀO LÚC:{" "}
+                      <span className="text-danger">
+                        {dataXemPhieu?.thoigianxuat}
+                      </span>
+                    </h5>
+                  </>
+                )}
+
                 <h5>
                   XUẤT CHO:{" "}
                   <span className="text-danger">{state?.khoaphong}</span>
