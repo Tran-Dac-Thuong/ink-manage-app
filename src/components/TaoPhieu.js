@@ -576,6 +576,7 @@ const CreatePhieu = (props) => {
       columnPinning: {
         right: ["mrt-row-actions"],
       },
+      sorting: [{ id: "stt", desc: true }],
     },
     state: { isLoading: loadingTaoPhieu },
     muiCircularProgressProps: {
@@ -591,88 +592,160 @@ const CreatePhieu = (props) => {
     renderRowActions: ({ row, table }) => (
       <Box sx={{ display: "flex", gap: "1rem" }}>
         {row.original.loaiphieu === "Phiếu xuất" &&
-        row.original.trangthai === "Chưa xuất" &&
-        role === "Người xuất" ? (
-          <Tooltip title="">
-            <Link
-              to={`/themmucin/${row.original.sophieu}/${
-                row.original.tenphieu
-              }/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${
-                row.original.nguoitaophieu
-              }/${row.original.trangthai}/${
-                row.original.khoaphongxuatmuc || "none"
-              }`}
-            >
-              <Button type="primary">Nhập mực in</Button>
-            </Link>
-          </Tooltip>
+        row.original.trangthai === "Chưa xuất" ? (
+          role === "Người xuất" || role === "Người duyệt" ? (
+            <>
+              <Tooltip title="">
+                <Link
+                  to={`/themmucin/${row.original.sophieu}/${
+                    row.original.tenphieu
+                  }/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${
+                    row.original.nguoitaophieu
+                  }/${row.original.trangthai}/${
+                    row.original.khoaphongxuatmuc || "none"
+                  }`}
+                >
+                  <Button type="primary">Nhập mực in</Button>
+                </Link>
+              </Tooltip>
+            </>
+          ) : (
+            <>
+              {row.original.danhsachmucincuaphieu.length > 0 ? (
+                <Link
+                  to={`/xemphieu/${row.original.sophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+                  state={{
+                    dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                    khoaphong: row.original.khoaphongxuatmuc,
+                  }}
+                >
+                  <Button type="primary" htmlType="submit">
+                    Xem
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  {" "}
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    disabled
+                    title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi xem"
+                  >
+                    Xem
+                  </Button>
+                </>
+              )}
+            </>
+          )
         ) : (
           <></>
         )}
         {row.original.loaiphieu === "Phiếu nhập" &&
-        row.original.trangthai === "Chưa duyệt" &&
-        role === "Người nhập" ? (
-          <Tooltip title="">
-            <Link
-              to={`/themmucin/${row.original.sophieu}/${
-                row.original.tenphieu
-              }/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${
-                row.original.nguoitaophieu
-              }/${row.original.trangthai}/${
-                row.original.khoaphongxuatmuc || "none"
-              }`}
-            >
-              <Button type="primary">Nhập mực in</Button>
-            </Link>
-          </Tooltip>
+        row.original.trangthai === "Chưa duyệt" ? (
+          role === "Người nhập" || role === "Người duyệt" ? (
+            <>
+              <Tooltip title="">
+                <Link
+                  to={`/themmucin/${row.original.sophieu}/${
+                    row.original.tenphieu
+                  }/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${
+                    row.original.nguoitaophieu
+                  }/${row.original.trangthai}/${
+                    row.original.khoaphongxuatmuc || "none"
+                  }`}
+                >
+                  <Button type="primary">Nhập mực in</Button>
+                </Link>
+              </Tooltip>
+            </>
+          ) : (
+            <>
+              {row.original.danhsachmucincuaphieu.length > 0 ? (
+                <>
+                  <Link
+                    to={`/xemphieu/${row.original.sophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+                    state={{
+                      dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                    }}
+                  >
+                    <Button type="primary" htmlType="submit">
+                      Xem
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    disabled
+                    title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi xem"
+                  >
+                    Xem
+                  </Button>
+                </>
+              )}
+            </>
+          )
         ) : (
           <></>
         )}
         {row.original.loaiphieu === "Phiếu xuất" &&
-        row.original.trangthai === "Chưa xuất" &&
-        role === "Người xuất" ? (
-          <Popconfirm
-            title="Xóa phiếu"
-            description="Bạn có chắc chắn muốn xóa phiếu này không?"
-            onConfirm={() => handleXoaPhieu(row)}
-            cancelText="Không"
-            okText="Xóa"
-            icon={
-              <QuestionCircleOutlined
-                style={{
-                  color: "red",
-                }}
-              />
-            }
-          >
-            <Button danger type="primary">
-              Xóa phiếu
-            </Button>
-          </Popconfirm>
+        row.original.trangthai === "Chưa xuất" ? (
+          role === "Người xuất" || role === "Người duyệt" ? (
+            <>
+              <Popconfirm
+                title="Xóa phiếu"
+                description="Bạn có chắc chắn muốn xóa phiếu này không?"
+                onConfirm={() => handleXoaPhieu(row)}
+                cancelText="Không"
+                okText="Xóa"
+                icon={
+                  <QuestionCircleOutlined
+                    style={{
+                      color: "red",
+                    }}
+                  />
+                }
+              >
+                <Button danger type="primary">
+                  Xóa phiếu
+                </Button>
+              </Popconfirm>
+            </>
+          ) : (
+            <></>
+          )
         ) : (
           <></>
         )}
         {row.original.loaiphieu === "Phiếu nhập" &&
-        row.original.trangthai === "Chưa duyệt" &&
-        role === "Người nhập" ? (
-          <Popconfirm
-            title="Xóa phiếu"
-            description="Bạn có chắc chắn muốn xóa phiếu này không?"
-            onConfirm={() => handleXoaPhieu(row)}
-            cancelText="Không"
-            okText="Xóa"
-            icon={
-              <QuestionCircleOutlined
-                style={{
-                  color: "red",
-                }}
-              />
-            }
-          >
-            <Button danger type="primary">
-              Xóa phiếu
-            </Button>
-          </Popconfirm>
+        row.original.trangthai === "Chưa duyệt" ? (
+          role === "Người nhập" || role === "Người duyệt" ? (
+            <>
+              <Popconfirm
+                title="Xóa phiếu"
+                description="Bạn có chắc chắn muốn xóa phiếu này không?"
+                onConfirm={() => handleXoaPhieu(row)}
+                cancelText="Không"
+                okText="Xóa"
+                icon={
+                  <QuestionCircleOutlined
+                    style={{
+                      color: "red",
+                    }}
+                  />
+                }
+              >
+                <Button danger type="primary">
+                  Xóa phiếu
+                </Button>
+              </Popconfirm>
+            </>
+          ) : (
+            <></>
+          )
         ) : (
           <></>
         )}

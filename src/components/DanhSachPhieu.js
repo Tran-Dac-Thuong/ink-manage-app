@@ -828,19 +828,36 @@ const InkManager = (props) => {
     },
     renderRowActions: ({ row, table }) =>
       row.original.loaiphieu === "Phiếu xuất" &&
-      // row.original.trangthai === "Đã xuất" &&
       row.original.danhsachmucincuaphieu.length > 0 ? (
-        <Link
-          to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
-          state={{
-            dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
-            khoaphong: row.original.khoaphongxuatmuc,
-          }}
-        >
-          <Button type="primary" htmlType="submit">
-            Xem
-          </Button>
-        </Link>
+        row.original.trangthai === "Chưa xuất" ? (
+          <>
+            <Link
+              to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/none/${row.original.tenphieu}`}
+              state={{
+                dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                khoaphong: row.original.khoaphongxuatmuc,
+              }}
+            >
+              <Button type="primary" htmlType="submit">
+                Xem
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link
+              to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/${row.original.thoigianxuat}/${row.original.tenphieu}`}
+              state={{
+                dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                khoaphong: row.original.khoaphongxuatmuc,
+              }}
+            >
+              <Button type="primary" htmlType="submit">
+                Xem
+              </Button>
+            </Link>
+          </>
+        )
       ) : (
         <Button
           title="Phiếu này chưa được nhập mực in nào. Vui lòng nhập ít nhất một mực in trước khi xem"

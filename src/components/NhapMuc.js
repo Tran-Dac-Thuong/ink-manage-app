@@ -523,7 +523,7 @@ const NhapMuc = (props) => {
     let dataInkDecode = res.data.name + "_" + res.data.id;
 
     for (let i = 0; i < InkArray.length; i++) {
-      if (InkArray[i].qrcode === dataDecode) {
+      if (InkArray[i].qrcode === dataInkDecode) {
         api["error"]({
           message: "Thất bại",
           description: "Mực in này đã được thêm trong phiếu này",
@@ -535,7 +535,7 @@ const NhapMuc = (props) => {
 
     // Kiểm tra với tất cả danh sách mực in
     for (let i = 0; i < allInkLists.length; i++) {
-      if (allInkLists[i].qrcode === dataDecode) {
+      if (allInkLists[i].qrcode === dataInkDecode) {
         api["error"]({
           message: "Thất bại",
           description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
@@ -545,7 +545,9 @@ const NhapMuc = (props) => {
       }
     }
 
-    let existsInkTonKho = dataTonKho.find((item) => item.qrcode === dataDecode);
+    let existsInkTonKho = dataTonKho.find(
+      (item) => item.qrcode === dataInkDecode
+    );
 
     if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
       api["error"]({
