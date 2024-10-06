@@ -140,6 +140,8 @@ const InkManager = (props) => {
       let res = await axios.get(`http://172.16.0.53:8080/danh_sach`);
 
       if (res && res.data && Array.isArray(res.data)) {
+        // const resultArrayNhap = [];
+        // const resultArrayXuat = [];
         let tonkhoArr = [];
         let xuatArr = [];
         let nhapArr = [];
@@ -233,6 +235,9 @@ const InkManager = (props) => {
             danhsachmucincuaphieu:
               item.decodedContent?.content?.danhsachphieu
                 ?.danhsachmucincuaphieu,
+            ngaytaophieuTimestamp: new Date(
+              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu
+            ).getTime(),
           })
         );
 
@@ -254,14 +259,37 @@ const InkManager = (props) => {
             danhsachmucincuaphieu:
               item.decodedContent?.content?.danhsachphieu
                 ?.danhsachmucincuaphieu,
+            ngaytaophieuTimestamp: new Date(
+              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu
+            ).getTime(),
+          })
+        );
+
+        resultArrayPhieuNhap.sort(
+          (a, b) => b.ngaytaophieuTimestamp - a.ngaytaophieuTimestamp
+        );
+        const sortedResultArrayNhap = resultArrayPhieuNhap.map(
+          (item, index) => ({
+            ...item,
+            stt: index + 1,
+          })
+        );
+
+        resultArrayPhieuXuat.sort(
+          (a, b) => b.ngaytaophieuTimestamp - a.ngaytaophieuTimestamp
+        );
+        const sortedResultArrayXuat = resultArrayPhieuXuat.map(
+          (item, index) => ({
+            ...item,
+            stt: index + 1,
           })
         );
 
         setDataDaXuat(xuatArr);
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
-        setDataPhieuNhap(resultArrayPhieuNhap);
-        setDataPhieuXuat(resultArrayPhieuXuat);
+        setDataPhieuNhap(sortedResultArrayNhap);
+        setDataPhieuXuat(sortedResultArrayXuat);
         setLoadingDanhSachPhieu(false);
       }
     } catch (error) {
@@ -612,6 +640,7 @@ const InkManager = (props) => {
     enableDensityToggle: false,
     enableFullScreenToggle: false,
     enableRowActions: true,
+    enableSorting: false,
     state: { isLoading: loadingDanhSachPhieu },
     muiCircularProgressProps: {
       color: "primary",
@@ -803,6 +832,7 @@ const InkManager = (props) => {
     enableDensityToggle: false,
     enableFullScreenToggle: false,
     enableRowActions: true,
+    enableSorting: false,
     paginationDisplayMode: "pages",
     initialState: {
       columnPinning: {

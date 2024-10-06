@@ -64,7 +64,6 @@ const XemPhieu = (props) => {
         // Xử lý dữ liệu ngay sau khi fetch
         const grouped = {};
         for (let i = 0; i < dataXemPhieu.length; i++) {
-          const qrCode = dataXemPhieu[i].qrcode;
           const prefix = dataXemPhieu[i].tenmuc;
 
           if (grouped[prefix]) {

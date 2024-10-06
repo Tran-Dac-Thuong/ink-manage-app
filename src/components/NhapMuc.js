@@ -124,19 +124,6 @@ const NhapMuc = (props) => {
     });
   };
 
-  const handleEncodeNhapMucInNuoc = (data) => {
-    return new Promise((resolve, reject) => {
-      if (encodeWorkerNhapMucInNuoc) {
-        encodeWorkerNhapMucInNuoc.postMessage(data);
-        encodeWorkerNhapMucInNuoc.onmessage = function (e) {
-          resolve(e.data);
-        };
-      } else {
-        console.log("Mã hóa dữ liệu nhập mực in không thành công");
-      }
-    });
-  };
-
   const handleDecodeLoginInfo = (encodedString) => {
     return new Promise((resolve, reject) => {
       if (decodeWorkerLoginInfo) {
@@ -472,21 +459,13 @@ const NhapMuc = (props) => {
         }
       }
       toast.success("Xuất mực in khỏi kho thành công");
-      navigate("/danhsachphieu");
+      navigate("/taophieu");
     } catch (error) {
       api["error"]({
         message: "Thất bại",
         description: "Đã xảy ra lỗi trong quá trình xuất mực in",
       });
     }
-  };
-
-  const isValidNumericString = (str) => {
-    // Sử dụng biểu thức chính quy để kiểm tra chuỗi chỉ chứa số
-    const regex = /^[0-9]+$/;
-
-    // Kiểm tra chuỗi bằng biểu thức chính quy
-    return regex.test(str);
   };
 
   const handleThemMucInCay = async (values) => {
@@ -595,7 +574,6 @@ const NhapMuc = (props) => {
         };
 
         InkArray.push(insertMucIn);
-        // console.log(insertMucIn);
 
         let newTaoPhieuData = {
           danhsachphieu: {

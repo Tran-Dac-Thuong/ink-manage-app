@@ -13,29 +13,7 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
 
   // Duyệt qua từng phần tử trong mảng ban đầu
   for (let i = 0; i < dataInkPrint.length; i++) {
-    const qrCode = dataInkPrint[i].qrcode;
-    // const prefix =
-    //   qrCode === "8885007027876"
-    //     ? "003 (Đen)"
-    //     : qrCode === "8906049013198"
-    //     ? "003 (Vàng)"
-    //     : qrCode === "8885007027913"
-    //     ? "003 (Hồng)"
-    //     : qrCode === "8906049013174"
-    //     ? "003 (Xanh)"
-    //     : qrCode === "8885007020259"
-    //     ? "664 (Hồng)"
-    //     : qrCode === "8885007020242"
-    //     ? "664 (Xanh)"
-    //     : qrCode === "8885007020266"
-    //     ? "664 (Vàng)"
-    //     : qrCode === "8885007020235"
-    //     ? "664 (Đen)"
-    //     : qrCode === "8885007028255"
-    //     ? "005 (Đen)"
-    //     : qrCode === "8885007023441"
-    //     ? "774 (Đen)"
-    //     : dataInkPrint[i].tenmuc; // Lấy ba ký tự đầu của mã QR
+    // Lấy prefix của phần tử hiện tại
     const prefix = dataInkPrint[i].tenmuc;
     // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
     if (grouped[prefix]) {
@@ -72,19 +50,18 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
             <Space>
               <QRCode size={100} type="svg" value="Hello" />
             </Space>
-            <div style={{ fontSize: "11px" }}>{props.masophieu}</div>
+            <div style={{ fontSize: "8px" }}>{props.masophieu}</div>
           </div>
         </div>
-        <br />
         <div className="date_phieuxuat">
-          <i>
+          <i style={{ fontSize: "10px" }}>
             Thành phố Hồ Chí Minh, ngày {date.getDate()} tháng{" "}
             {date.getMonth() + 1} năm {date.getFullYear()}
           </i>
         </div>
-
+        {props.paperSize}
         <h4 className="title_phieuxuat">PHIẾU XUẤT MỰC IN</h4>
-
+        <br />
         <span>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
         <table className="ink-table_phieuxuat">
           <thead>
@@ -141,7 +118,6 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
               })}
           </tbody>
         </table>
-
         <div className="footer_phieuxuat">
           <div className="department_phieuxuat mt-3">
             <p>

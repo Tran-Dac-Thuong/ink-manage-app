@@ -1,4 +1,4 @@
-import { Button, Form, Popconfirm, Select, notification } from "antd";
+import { Button, Form, Input, Popconfirm, Select, notification } from "antd";
 import React, { useEffect, useMemo, useState } from "react";
 import { Option } from "antd/es/mentions";
 import {
@@ -288,6 +288,7 @@ const CreatePhieu = (props) => {
           const decodedTenphieu = decodeData?.content?.danhsachphieu?.tenphieu;
           const decodedThoigianxuat =
             decodeData?.content?.danhsachphieu?.thoigianxuat;
+          const ngaytaophieuTimestamp = new Date(decodedNgayTaoPhieu).getTime();
 
           const insertDataPhieu = {
             stt: i + 1,
@@ -303,14 +304,23 @@ const CreatePhieu = (props) => {
             khoaphongxuatmuc: decodedKhoaphong,
             thoigianxuat: decodedThoigianxuat,
             danhsachmucincuaphieu: decodedDanhsachmucincuaphieu,
+            ngaytaophieuTimestamp: ngaytaophieuTimestamp,
           };
           resultArray.push(insertDataPhieu);
         }
 
+        resultArray.sort(
+          (a, b) => b.ngaytaophieuTimestamp - a.ngaytaophieuTimestamp
+        );
+        const sortedResultArray = resultArray.map((item, index) => ({
+          ...item,
+          stt: index + 1,
+        }));
+
         setDataDaNhap(nhapArr);
         setDataDaXuat(xuatArr);
         setDataTonKho(tonkhoArr);
-        setData(resultArray);
+        setData(sortedResultArray);
         setLoadingTaoPhieu(false);
       }
     } catch (error) {
@@ -322,8 +332,14 @@ const CreatePhieu = (props) => {
   };
 
   const handleTaoPhieu = async (values) => {
+    let phieudachon = values.chonloaiphieu
+      ? values.chonloaiphieu
+      : values.chonloaiphieu_nhap
+      ? values.chonloaiphieu_nhap
+      : values.chonloaiphieu_xuat;
+
     const dataAfterFilter = data.filter(
-      (item) => item?.loaiphieu === values.chonloaiphieu
+      (item) => item?.loaiphieu === phieudachon
     );
 
     let timestamp = Date.now();
@@ -342,17 +358,16 @@ const CreatePhieu = (props) => {
 
     const newTaoPhieuData = {
       danhsachphieu: {
-        loaiphieu: values.chonloaiphieu,
+        loaiphieu: phieudachon,
         tenphieu:
-          values.chonloaiphieu === "Phiếu nhập"
+          phieudachon === "Phiếu nhập"
             ? "Phiếu nhập " + Number(dataAfterFilter.length + 1)
             : "Phiếu xuất " + Number(dataAfterFilter.length + 1),
         ngaytaophieu: currentTime,
         nguoitaophieu: hovaten,
         khoaphongxuatmuc:
-          values.chonloaiphieu === "Phiếu nhập" ? "" : values.chonkhoaphong,
-        trangthai:
-          values.chonloaiphieu === "Phiếu nhập" ? "Chưa duyệt" : "Chưa xuất",
+          phieudachon === "Phiếu nhập" ? "" : values.chonkhoaphong,
+        trangthai: phieudachon === "Phiếu nhập" ? "Chưa duyệt" : "Chưa xuất",
         ngayduyetphieu: "",
 
         danhsachmucincuaphieu: [],
@@ -572,11 +587,11 @@ const CreatePhieu = (props) => {
     enableDensityToggle: false,
     enableFullScreenToggle: false,
     enableRowActions: true,
+    enableSorting: false,
     initialState: {
       columnPinning: {
         right: ["mrt-row-actions"],
       },
-      sorting: [{ id: "stt", desc: true }],
     },
     state: { isLoading: loadingTaoPhieu },
     muiCircularProgressProps: {
@@ -914,9 +929,19 @@ const CreatePhieu = (props) => {
         <h4 className="text-center mt-5 mb-5">TẠO PHIẾU</h4>
         {role === "Người nhập" ? (
           <>
-            <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
+            <Form
+              form={form}
+              name="control-hooks"
+              onFinish={handleTaoPhieu}
+              fields={[
+                {
+                  name: ["chonloaiphieu_nhap"],
+                  value: "Phiếu nhập",
+                },
+              ]}
+            >
               <Form.Item
-                name="chonloaiphieu"
+                name="chonloaiphieu_nhap"
                 rules={[
                   {
                     required: true,
@@ -924,13 +949,11 @@ const CreatePhieu = (props) => {
                   },
                 ]}
               >
-                <Select
-                  placeholder="Chọn phiếu"
-                  allowClear
+                <Input
+                  disabled
                   style={{ width: "100%" }}
-                >
-                  <Option value="Phiếu nhập">Phiếu nhập</Option>
-                </Select>
+                  placeholder="Chọn phiếu"
+                />
               </Form.Item>
 
               <Form.Item>
@@ -996,9 +1019,19 @@ const CreatePhieu = (props) => {
           </>
         ) : (
           <>
-            <Form form={form} name="control-hooks" onFinish={handleTaoPhieu}>
+            <Form
+              form={form}
+              name="control-hooks"
+              onFinish={handleTaoPhieu}
+              fields={[
+                {
+                  name: ["chonloaiphieu_xuat"],
+                  value: "Phiếu xuất",
+                },
+              ]}
+            >
               <Form.Item
-                name="chonloaiphieu"
+                name="chonloaiphieu_xuat"
                 rules={[
                   {
                     required: true,
@@ -1006,39 +1039,34 @@ const CreatePhieu = (props) => {
                   },
                 ]}
               >
-                <Select
+                <Input
+                  disabled
+                  style={{ width: "100%" }}
                   placeholder="Chọn phiếu"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="chonkhoaphong"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn khoa phòng",
+                  },
+                ]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Chọn khoa phòng"
                   allowClear
                   style={{ width: "100%" }}
-                  onSelect={(event) => handleSelect(event)}
                 >
-                  <Option value="Phiếu xuất">Phiếu xuất</Option>
+                  {khoaPhong.map((item, index) => {
+                    return <Option value={item}>{item}</Option>;
+                  })}
                 </Select>
               </Form.Item>
-              {chonPhieu ? (
-                <Form.Item
-                  name="chonkhoaphong"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Vui lòng chọn khoa phòng",
-                    },
-                  ]}
-                >
-                  <Select
-                    showSearch
-                    placeholder="Chọn khoa phòng"
-                    allowClear
-                    style={{ width: "100%" }}
-                  >
-                    {khoaPhong.map((item, index) => {
-                      return <Option value={item}>{item}</Option>;
-                    })}
-                  </Select>
-                </Form.Item>
-              ) : (
-                <></>
-              )}
+
               <Form.Item>
                 <Button type="primary" htmlType="submit">
                   Tạo phiếu
