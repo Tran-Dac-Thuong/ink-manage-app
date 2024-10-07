@@ -512,20 +512,20 @@ const NhapMuc = (props) => {
       }
     }
 
-    // Kiểm tra với tất cả danh sách mực in
-    for (let i = 0; i < allInkLists.length; i++) {
-      if (
-        allInkLists[i].qrcode === dataInkDecode &&
-        dataPhieu?.loaiphieu === "Phiếu nhập"
-      ) {
-        api["error"]({
-          message: "Thất bại",
-          description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
-        });
-        form.resetFields();
-        return;
-      }
-    }
+    // // Kiểm tra với tất cả danh sách mực in
+    // for (let i = 0; i < allInkLists.length; i++) {
+    //   if (
+    //     allInkLists[i].qrcode === dataInkDecode &&
+    //     dataPhieu?.loaiphieu === "Phiếu nhập"
+    //   ) {
+    //     api["error"]({
+    //       message: "Thất bại",
+    //       description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
+    //     });
+    //     form.resetFields();
+    //     return;
+    //   }
+    // }
 
     let existsInkTonKho = dataTonKho.find(
       (item) => item.qrcode === dataInkDecode
