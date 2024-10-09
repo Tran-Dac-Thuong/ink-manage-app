@@ -198,9 +198,6 @@ const TonKho = (props) => {
             stt: idCounter++,
           }));
 
-          console.log("Tồn kho: ", tonkhoArr);
-          console.log("Xuất: ", xuatArr);
-
           setDataDaXuat(xuatArr);
           setDataDaNhap(nhapArr);
           setDataTonKho(tonkhoArr);
@@ -247,12 +244,12 @@ const TonKho = (props) => {
       },
       {
         accessorKey: "thoigiannhapmucin",
-        header: "Thời gian nhập mực in",
+        header: "Thời gian nhập",
         size: 200,
       },
       {
         accessorKey: "nguoinhapmucin",
-        header: "Người nhập mực in",
+        header: "Người nhập",
         size: 150,
       },
     ],

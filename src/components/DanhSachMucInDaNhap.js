@@ -7,7 +7,7 @@ import {
 } from "material-react-table";
 import ButtonBootstrap from "react-bootstrap/Button";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import { Box, tabClasses } from "@mui/material";
+import { Box } from "@mui/material";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -227,8 +227,8 @@ const DanhSachMucInDaNhap = (props) => {
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
           "Tên phiếu": rowData[i].tenphieu,
-          "Thời gian nhập mực in": rowData[i].thoigiannhapmucin,
-          "Người nhập mực in": rowData[i].nguoinhapmucin,
+          "Thời gian nhập": rowData[i].thoigiannhapmucin,
+          "Người nhập": rowData[i].nguoinhapmucin,
         };
 
         configDataArr.push(configData);
@@ -339,12 +339,12 @@ const DanhSachMucInDaNhap = (props) => {
       },
       {
         accessorKey: "thoigiannhapmucin",
-        header: "Thời gian nhập mực in",
+        header: "Thời gian nhập",
         size: 200,
       },
       {
         accessorKey: "nguoinhapmucin",
-        header: "Người nhập mực in",
+        header: "Người nhập",
         size: 150,
       },
     ],
