@@ -198,6 +198,9 @@ const TonKho = (props) => {
             stt: idCounter++,
           }));
 
+          console.log("Tồn kho: ", tonkhoArr);
+          console.log("Xuất: ", xuatArr);
+
           setDataDaXuat(xuatArr);
           setDataDaNhap(nhapArr);
           setDataTonKho(tonkhoArr);

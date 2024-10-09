@@ -194,11 +194,30 @@ const DanhSachMucInDaXuat = (props) => {
             }
           }
 
+          const importVoucherMap = new Map();
+          for (const item of decodedData) {
+            if (
+              item.decodedContent?.content?.danhsachphieu?.trangthai ===
+              "Đã duyệt"
+            ) {
+              const danhsachmucincuaphieu =
+                item.decodedContent?.content?.danhsachphieu
+                  ?.danhsachmucincuaphieu || [];
+              const tenphieu =
+                item.decodedContent?.content?.danhsachphieu?.tenphieu;
+              danhsachmucincuaphieu.forEach((mucin) => {
+                importVoucherMap.set(mucin.qrcode, tenphieu);
+              });
+            }
+          }
+
           // Thêm id vào từng phần tử của tonkhoArr
           let idCounter = 1;
           danhsachdaxuatArr = danhsachdaxuatArr.map((item) => ({
             ...item,
             stt: idCounter++,
+            phieunhap:
+              importVoucherMap.get(item.qrcode) || "Không có thông tin",
           }));
 
           setDataDaNhap(nhapArr);
@@ -228,6 +247,7 @@ const DanhSachMucInDaXuat = (props) => {
           "Mã QRCode": rowData[i].qrcode,
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
+          "Tên phiếu nhập": rowData[i].phieunhap,
           "Tên khoa phòng": rowData[i].khoaphongxuatmuc,
           "Thời gian xuất": rowData[i].thoigianxuat,
         };
@@ -277,8 +297,9 @@ const DanhSachMucInDaXuat = (props) => {
         i + 1,
         arr[0],
         arr[1],
-        arr[8],
-        arr[7],
+        arr.length === 11 ? arr[10] : arr[18],
+        arr.length === 11 ? arr[8] : arr[16],
+        arr.length === 11 ? arr[7] : arr[15],
         arr[6],
         arr[3],
         arr[2],
@@ -323,6 +344,11 @@ const DanhSachMucInDaXuat = (props) => {
       {
         accessorKey: "mamuc",
         header: "Mã mực",
+        size: 150,
+      },
+      {
+        accessorKey: "phieunhap",
+        header: "Tên phiếu nhập",
         size: 150,
       },
       {

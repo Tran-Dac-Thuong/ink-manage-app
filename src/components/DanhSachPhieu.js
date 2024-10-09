@@ -23,6 +23,7 @@ const InkManager = (props) => {
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
+
   const [encodeWorkerDuyet] = useState(
     () => new Worker("encodeWorkerDuyet.js")
   );
@@ -140,8 +141,6 @@ const InkManager = (props) => {
       let res = await axios.get(`http://172.16.0.53:8080/danh_sach`);
 
       if (res && res.data && Array.isArray(res.data)) {
-        // const resultArrayNhap = [];
-        // const resultArrayXuat = [];
         let tonkhoArr = [];
         let xuatArr = [];
         let nhapArr = [];
@@ -641,7 +640,9 @@ const InkManager = (props) => {
     enableFullScreenToggle: false,
     enableRowActions: true,
     enableSorting: false,
-    state: { isLoading: loadingDanhSachPhieu },
+    state: {
+      isLoading: loadingDanhSachPhieu,
+    },
     muiCircularProgressProps: {
       color: "primary",
       thickness: 5,
