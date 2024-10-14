@@ -13,7 +13,6 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
 
   // Duyệt qua từng phần tử trong mảng ban đầu
   for (let i = 0; i < dataInkPrint.length; i++) {
-    // Lấy prefix của phần tử hiện tại
     const prefix = dataInkPrint[i].tenmuc;
     // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
     if (grouped[prefix]) {
@@ -42,10 +41,10 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
             style={{ marginRight: "120px" }}
           >
             <Space>
-              <QRCode size={100} type="svg" value="Hello" />
+              <QRCode size={100} type="svg" value={props.masophieu} />
             </Space>
 
-            <div style={{ fontSize: "8px" }}>{props.masophieu}</div>
+            <div style={{ fontSize: "9px" }}>{props.masophieu}</div>
           </div>
         </div>
         <br />
@@ -57,7 +56,6 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
         </div>
 
         <h4 className="title_phieunhap">PHIẾU NHẬP MỰC IN</h4>
-        <br />
         <span>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
         <table className="ink-table_phieunhap">
           <thead>
@@ -92,7 +90,7 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
               <th>STT</th>
               <th>Tên mực</th>
               <th>Mã mực</th>
-              <th>Thời gian nhập</th>
+              <th>Thời gian nhập mực in</th>
               <th>Ghi chú</th>
             </tr>
           </thead>

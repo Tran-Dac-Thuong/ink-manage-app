@@ -35,35 +35,47 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
       <div className="print-preview_phieuxuat" ref={ref}>
         <div className="header_phieuxuat">
           <div>
-            <div className="left-header_phieuxuat">
-              <img src="../../../../../../../../img/logo2.png" alt="" />
+            <div
+              className="left-header_phieuxuat"
+              style={{ marginBottom: "10px" }}
+            >
+              <img
+                src="../../../../../../../../img/logo2.png"
+                alt=""
+                style={{ width: "280px" }}
+              />
             </div>
-            <br />
-            <span style={{ paddingLeft: "10px" }}>
+
+            <span
+              style={{
+                paddingLeft: "10px",
+                fontSize: "14px",
+              }}
+            >
               PHÒNG CÔNG NGHỆ THÔNG TIN
             </span>
           </div>
           <div
             className="right-header_phieuxuat"
-            style={{ marginRight: "120px" }}
+            style={{ marginRight: "10px", marginTop: "-5px" }}
           >
             <Space>
-              <QRCode size={100} type="svg" value="Hello" />
+              <QRCode size={70} type="svg" value={props.masophieu} />
             </Space>
-            <div style={{ fontSize: "8px" }}>{props.masophieu}</div>
+            <div style={{ fontSize: "7px" }}>{props.masophieu}</div>
           </div>
         </div>
-        <div className="date_phieuxuat">
-          <i style={{ fontSize: "10px" }}>
-            Thành phố Hồ Chí Minh, ngày {date.getDate()} tháng{" "}
-            {date.getMonth() + 1} năm {date.getFullYear()}
-          </i>
-        </div>
+
         {props.paperSize}
-        <h4 className="title_phieuxuat">PHIẾU XUẤT MỰC IN</h4>
-        <br />
-        <span>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
-        <table className="ink-table_phieuxuat">
+        <h4 className="title_phieuxuat" style={{ fontSize: "18px" }}>
+          PHIẾU XUẤT MỰC IN
+        </h4>
+
+        <span style={{ fontSize: "12px" }}>DANH SÁCH SỐ LƯỢNG TỪNG MỰC IN</span>
+        <table
+          className="ink-table_phieuxuat"
+          style={{ fontSize: "12px", marginBottom: "5px" }}
+        >
           <thead>
             <tr>
               <th>STT</th>
@@ -88,9 +100,11 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
               })}
           </tbody>
         </table>
-        <br />
-        <span>DANH SÁCH THÔNG TIN CHI TIẾT CỦA TỪNG MỰC IN</span>
-        <table className="ink-table_phieunhap">
+
+        <span style={{ fontSize: "12px" }}>
+          DANH SÁCH THÔNG TIN CHI TIẾT CỦA TỪNG MỰC IN
+        </span>
+        <table className="ink-table_phieuxuat" style={{ fontSize: "12px" }}>
           <thead>
             <tr>
               <th>STT</th>
@@ -119,15 +133,14 @@ export const PrintTemplatePhieuXuat = React.forwardRef((props, ref) => {
           </tbody>
         </table>
         <div className="footer_phieuxuat">
-          <div className="department_phieuxuat mt-3">
+          <div className="department_phieuxuat mt-2">
             <p>
               <strong>{props.khoaphong}</strong>
-            </p>
-          </div>
-
-          <div className="signature_phieuxuat mt-3">
-            <p>
-              <strong>{props.nguoilamphieu}</strong>
+              <br />
+              <i style={{ fontSize: "12px" }}>
+                TP Hồ Chí Minh, ngày {date.getDate()} tháng{" "}
+                {date.getMonth() + 1} năm {date.getFullYear()}
+              </i>
             </p>
           </div>
         </div>

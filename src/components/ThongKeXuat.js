@@ -52,8 +52,8 @@ const ThongKeXuat = (props) => {
     "49A": "bonchinA",
     // 337: "bababay",
     "78A": "baytamA",
-    "052": "khongnamhai",
-    319: "bamotchin",
+    // "052": "khongnamhai",
+    // 319: "bamotchin",
     "12A": "muoihaiA",
     // "17A": "muoibayA",
     // "003 (Đen)": "khongkhongbaden",
@@ -433,16 +433,37 @@ const ThongKeXuat = (props) => {
             ...stats,
           }));
 
+          const importVoucherMap = new Map();
+          for (const item of decodedData) {
+            if (
+              item.decodedContent?.content?.danhsachphieu?.trangthai ===
+              "Đã duyệt"
+            ) {
+              const danhsachmucincuaphieu =
+                item.decodedContent?.content?.danhsachphieu
+                  ?.danhsachmucincuaphieu || [];
+              const tenphieu =
+                item.decodedContent?.content?.danhsachphieu?.tenphieu;
+              danhsachmucincuaphieu.forEach((mucin) => {
+                importVoucherMap.set(mucin.qrcode, tenphieu);
+              });
+            }
+          }
+
           let idCounterMonth = 1;
           dataFilterOnMonth = dataFilterOnMonth.map((item) => ({
             ...item,
             stt: idCounterMonth++,
+            phieunhap:
+              importVoucherMap.get(item.qrcode) || "Không có thông tin",
           }));
 
           let idCounterYear = 1;
           dataFilterOnYear = dataFilterOnYear.map((item) => ({
             ...item,
             stt: idCounterYear++,
+            phieunhap:
+              importVoucherMap.get(item.qrcode) || "Không có thông tin",
           }));
 
           setDataDaXuat(xuatArr);
@@ -577,7 +598,8 @@ const ThongKeXuat = (props) => {
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
           "Mã QRCode": rowData[i].qrcode,
-          "Tên phiếu": rowData[i].tenphieu,
+          "Tên phiếu nhập": rowData[i].phieunhap,
+          "Tên phiếu xuất": rowData[i].tenphieu,
           "Xuất cho": rowData[i].khoaphongxuatmuc,
           "Đã xuất vào lúc": rowData[i].thoigianxuat,
         };
@@ -623,14 +645,15 @@ const ThongKeXuat = (props) => {
 
       const tableHeaders = columns.map((c) => c.header);
 
-      let rearrangedArray = tableData.map((arr) => [
-        arr[9],
+      let rearrangedArray = tableData.map((arr, i) => [
+        i + 1,
         arr[0],
         arr[1],
         arr[3],
+        arr.length === 11 ? arr[10] : arr[18],
         arr[5],
-        arr[8],
-        arr[7],
+        arr.length === 11 ? arr[8] : arr[16],
+        arr.length === 11 ? arr[7] : arr[15],
         arr[2],
       ]);
 
@@ -661,7 +684,8 @@ const ThongKeXuat = (props) => {
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
           "Mã QRCode": rowData[i].qrcode,
-          "Tên phiếu": rowData[i].tenphieu,
+          "Tên phiếu nhập": rowData[i].phieunhap,
+          "Tên phiếu xuất": rowData[i].tenphieu,
           "Xuất cho": rowData[i].khoaphongxuatmuc,
           "Đã xuất vào lúc": rowData[i].thoigianxuat,
         };
@@ -707,16 +731,16 @@ const ThongKeXuat = (props) => {
 
       const tableHeaders = columns.map((c) => c.header);
 
-      let rearrangedArray = tableData.map((arr) => [
-        arr[9],
+      let rearrangedArray = tableData.map((arr, i) => [
+        i + 1,
         arr[0],
         arr[1],
         arr[3],
+        arr.length === 11 ? arr[10] : arr[18],
         arr[5],
-        arr[8],
-        arr[7],
+        arr.length === 11 ? arr[8] : arr[16],
+        arr.length === 11 ? arr[7] : arr[15],
         arr[2],
-        arr[4],
       ]);
 
       autoTable(doc, {
@@ -763,8 +787,13 @@ const ThongKeXuat = (props) => {
         size: 120,
       },
       {
+        accessorKey: "phieunhap",
+        header: "Tên phiếu nhập",
+        size: 120,
+      },
+      {
         accessorKey: "tenphieu",
-        header: "Tên phiếu",
+        header: "Tên phiếu xuất",
         size: 120,
       },
 
@@ -1070,7 +1099,7 @@ const ThongKeXuat = (props) => {
         </div>
         <h4 className="text-center mt-5 mb-5">
           <span>
-            DANH SÁCH SỐ LƯỢNG MỰC IN ĐÃ ĐỔI CHO TỪNG KHOA TRONG 1 THÁNG QUA
+            DANH SÁCH CÁC MỰC IN ĐÃ ĐỔI CHO TỪNG KHOA TRONG 1 THÁNG QUA
           </span>
           <br />
           <span>
@@ -1104,9 +1133,7 @@ const ThongKeXuat = (props) => {
           <MaterialReactTable table={tableMucInTheoKhoaMotThang} />
         </div>
         <h4 className="text-center mt-5 mb-5">
-          <span>
-            DANH SÁCH SỐ LƯỢNG MỰC IN ĐÃ ĐỔI CHO TỪNG KHOA TRONG 1 NĂM QUA
-          </span>
+          <span>DANH SÁCH CÁC MỰC IN ĐÃ ĐỔI CHO TỪNG KHOA TRONG 1 NĂM QUA</span>
           <br />
           <span>
             (Từ ngày {oneYearAgo} tới ngày {current})
@@ -1140,7 +1167,8 @@ const ThongKeXuat = (props) => {
         </div>
         <h4 className="text-center mt-5 mb-5">
           <span>
-            DANH SÁCH CÁC MỰC IN ĐÃ ĐỔI CHO CÁC KHOA TRONG 1 THÁNG QUA
+            DANH SÁCH THÔNG TIN CHI TIẾT CÁC MỰC IN ĐÃ ĐỔI CHO CÁC KHOA TRONG 1
+            THÁNG QUA
           </span>
           <br />
           <span>
@@ -1174,7 +1202,10 @@ const ThongKeXuat = (props) => {
           <MaterialReactTable table={tableOneMonth} />
         </div>
         <h4 className="text-center mt-5 mb-5">
-          <span>DANH SÁCH CÁC MỰC IN ĐÃ ĐỔI CHO CÁC KHOA TRONG 1 NĂM QUA</span>
+          <span>
+            DANH SÁCH THÔNG TIN CHI TIẾT CÁC MỰC IN ĐÃ ĐỔI CHO CÁC KHOA TRONG 1
+            NĂM QUA
+          </span>
           <br />
           <span>
             (Từ ngày {oneYearAgo} tới ngày {current})

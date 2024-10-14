@@ -440,8 +440,6 @@ const NhapMuc = (props) => {
 
           let updatedData = updatedDataDecode[i].decodeContent.content;
 
-          console.log(updatedData);
-
           let dataToEncode = {
             content: updatedData,
           };

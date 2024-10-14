@@ -42,8 +42,8 @@ const ThongKeNhap = (props) => {
     "49A": "bonchinA",
     // 337: "bababay",
     "78A": "baytamA",
-    "052": "khongnamhai",
-    319: "bamotchin",
+    // "052": "khongnamhai",
+    // 319: "bamotchin",
     "12A": "muoihaiA",
     // "17A": "muoibayA",
     // "003 (Đen)": "khongkhongbaden",
@@ -690,7 +690,7 @@ const ThongKeNhap = (props) => {
           </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">
-          <span>DANH SÁCH SỐ LƯỢNG MỰC IN ĐÃ NHẬP TRONG 1 THÁNG QUA</span>
+          <span>DANH SÁCH CÁC MỰC IN ĐÃ NHẬP TRONG 1 THÁNG QUA</span>
           <br />
           <span>
             (Từ ngày {oneMonthAgo} tới ngày {current})
