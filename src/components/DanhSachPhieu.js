@@ -215,8 +215,31 @@ const InkManager = (props) => {
             "Phiếu xuất"
           );
         });
-        const resultArrayPhieuNhap = filteredArrPhieuNhap.map(
-          (item, index) => ({
+
+        const resultArrayPhieuNhap = filteredArrPhieuNhap.map((item, index) => {
+          let ngaytaophieuTimestampNhap;
+
+          if (item.decodedContent?.content?.danhsachphieu?.ngaytaophieu) {
+            const [day, month, year, time] =
+              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu.split(
+                /[-\s]/
+              );
+            const [hours, minutes, seconds] = time.split(":");
+            ngaytaophieuTimestampNhap = new Date(
+              year,
+              month - 1,
+              day,
+              hours,
+              minutes,
+              seconds
+            ).getTime();
+          }
+
+          if (isNaN(ngaytaophieuTimestampNhap)) {
+            ngaytaophieuTimestampNhap = Date.now();
+          }
+
+          return {
             stt: index + 1,
             masophieu: item._id,
             loaiphieu: item.decodedContent?.content?.danhsachphieu?.loaiphieu,
@@ -234,14 +257,34 @@ const InkManager = (props) => {
             danhsachmucincuaphieu:
               item.decodedContent?.content?.danhsachphieu
                 ?.danhsachmucincuaphieu,
-            ngaytaophieuTimestamp: new Date(
-              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu
-            ).getTime(),
-          })
-        );
+            ngaytaophieuTimestamp: ngaytaophieuTimestampNhap,
+          };
+        });
 
-        const resultArrayPhieuXuat = filteredArrPhieuXuat.map(
-          (item, index) => ({
+        const resultArrayPhieuXuat = filteredArrPhieuXuat.map((item, index) => {
+          let ngaytaophieuTimestampXuat;
+
+          if (item.decodedContent?.content?.danhsachphieu?.ngaytaophieu) {
+            const [day, month, year, time] =
+              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu.split(
+                /[-\s]/
+              );
+            const [hours, minutes, seconds] = time.split(":");
+            ngaytaophieuTimestampXuat = new Date(
+              year,
+              month - 1,
+              day,
+              hours,
+              minutes,
+              seconds
+            ).getTime();
+          }
+
+          if (isNaN(ngaytaophieuTimestampXuat)) {
+            ngaytaophieuTimestampXuat = Date.now();
+          }
+
+          return {
             stt: index + 1,
             masophieu: item._id,
             loaiphieu: item.decodedContent?.content?.danhsachphieu?.loaiphieu,
@@ -258,11 +301,9 @@ const InkManager = (props) => {
             danhsachmucincuaphieu:
               item.decodedContent?.content?.danhsachphieu
                 ?.danhsachmucincuaphieu,
-            ngaytaophieuTimestamp: new Date(
-              item.decodedContent?.content?.danhsachphieu?.ngaytaophieu
-            ).getTime(),
-          })
-        );
+            ngaytaophieuTimestamp: ngaytaophieuTimestampXuat,
+          };
+        });
 
         resultArrayPhieuNhap.sort(
           (a, b) => b.ngaytaophieuTimestamp - a.ngaytaophieuTimestamp

@@ -155,6 +155,7 @@ const CreatePhieu = (props) => {
         (showPhieuXuat && item.loaiphieu === "Phiếu xuất")
     );
     setFilteredData(newFilteredData);
+    // console.log(newFilteredData);
   }, [data, showPhieuNhap, showPhieuXuat]);
 
   useEffect(() => {
@@ -288,7 +289,25 @@ const CreatePhieu = (props) => {
           const decodedTenphieu = decodeData?.content?.danhsachphieu?.tenphieu;
           const decodedThoigianxuat =
             decodeData?.content?.danhsachphieu?.thoigianxuat;
-          const ngaytaophieuTimestamp = new Date(decodedNgayTaoPhieu).getTime();
+
+          let ngaytaophieuTimestamp;
+
+          if (decodedNgayTaoPhieu) {
+            const [day, month, year, time] = decodedNgayTaoPhieu.split(/[-\s]/);
+            const [hours, minutes, seconds] = time.split(":");
+            ngaytaophieuTimestamp = new Date(
+              year,
+              month - 1,
+              day,
+              hours,
+              minutes,
+              seconds
+            ).getTime();
+          }
+
+          if (isNaN(ngaytaophieuTimestamp)) {
+            ngaytaophieuTimestamp = Date.now(); // Sử dụng thời gian hiện tại nếu không parse được
+          }
 
           const insertDataPhieu = {
             stt: i + 1,
