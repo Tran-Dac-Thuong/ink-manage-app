@@ -14,20 +14,20 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import ButtonBootstrap from "react-bootstrap/Button";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import { PrintTemplateThongKeMucInDaNhapMotThang } from "./print-template/PrintTemplateThongKeMucInDaNhapMotThang";
-import { PrintTemplateThongKeMucInDaNhapMotNam } from "./print-template/PrintTemplateThongKeMucInDaNhapMotNam";
+import { PrintTemplateThongKeMucInDaNhap } from "./print-template/PrintTemplateThongKeMucInDaNhap";
 import Dropdown from "react-bootstrap/Dropdown";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
 const ThongKeNhap = (props) => {
   const [loadingDataMucInDaNhap, setLoadingDataMucInDaNhap] = useState(true);
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
-  const [dataMucInDaNhapMotThang, setDataMucInDaNhapMotThang] = useState([]);
-  const [dataMucInDaNhapMotNam, setDataMucInDaNhapMotNam] = useState([]);
-  const [oneMonthAgo, setOneMonthAgo] = useState("");
-  const [oneYearAgo, setOneYearAgo] = useState("");
-  const [current, setCurrent] = useState("");
+  const [dataMucInDaNhap, setDataMucInDaNhap] = useState([]);
+
   const [tendangnhap, setTendangnhap] = useState("");
   const [role, setRole] = useState("");
   const [decodeWorkerLoginInfo] = useState(
@@ -36,15 +36,17 @@ const ThongKeNhap = (props) => {
   const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
   const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
   const [api, contextHolder] = notification.useNotification();
-
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
+  const [showTable, setShowTable] = useState(false);
   const [inkNameMapping, setInkNameMapping] = useState({
     // 276: "haibaysau",
-    "49A": "bonchinA",
+    // "49A": "bonchinA",
     // 337: "bababay",
-    "78A": "baytamA",
+    // "78A": "baytamA",
     // "052": "khongnamhai",
     // 319: "bamotchin",
-    "12A": "muoihaiA",
+    // "12A": "muoihaiA",
     // "17A": "muoibayA",
     // "003 (Đen)": "khongkhongbaden",
     // "003 (Vàng)": "khongkhongbavang",
@@ -62,14 +64,8 @@ const ThongKeNhap = (props) => {
 
   const componentRefMotThang = useRef();
 
-  const componentRefMotNam = useRef();
-
   const handlePrintMucInDaNhapMotThang = useReactToPrint({
     content: () => componentRefMotThang.current,
-  });
-
-  const handlePrintMucInDaNhapMotNam = useReactToPrint({
-    content: () => componentRefMotNam.current,
   });
 
   const handleDecodeLoginInfo = (encodedString) => {
@@ -109,12 +105,6 @@ const ThongKeNhap = (props) => {
         console.log("Giải mã vai trò không thành công");
       }
     });
-  };
-
-  const parseDate = (dateStr) => {
-    let [day, month, year] = dateStr.split("-");
-    // Lưu ý: tháng trong đối tượng Date bắt đầu từ 0
-    return new Date(year, month - 1, day);
   };
 
   useEffect(() => {
@@ -167,51 +157,8 @@ const ThongKeNhap = (props) => {
 
   const fetchDataSearch = async () => {
     try {
-      let timestamp = Date.now();
-
-      let date = new Date(timestamp);
-
-      let day = date.getDate();
-      let month = date.getMonth() + 1;
-      let year = date.getFullYear();
-
-      let currentTime = `${day}-${month}-${year}`;
-
-      // Lấy ngày hiện tại
-      const currentDate = new Date();
-      // Tính ngày 1 tháng trước
-      const oneMonthAgo = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() - 1,
-        currentDate.getDate()
-      );
-
-      const oneYearAgo = new Date(
-        currentDate.getFullYear() - 1,
-        currentDate.getMonth(),
-        currentDate.getDate()
-      );
-
-      let dayOfOneMonthAgo = oneMonthAgo.getDate();
-      let monthOfOneMonthAgo = oneMonthAgo.getMonth() + 1;
-      let yearOfOneMonthAgo = oneMonthAgo.getFullYear();
-
-      let dayOfOneYearAgo = oneYearAgo.getDate();
-      let monthOfOneYearAgo = oneYearAgo.getMonth() + 1;
-      let yearOfOneYearAgo = oneYearAgo.getFullYear();
-
-      let oneMonthAgoTime = `${dayOfOneMonthAgo}-${monthOfOneMonthAgo}-${yearOfOneMonthAgo}`;
-
-      let oneYearAgoTime = `${dayOfOneYearAgo}-${monthOfOneYearAgo}-${yearOfOneYearAgo}`;
-
-      setOneMonthAgo(oneMonthAgoTime);
-      setOneYearAgo(oneYearAgoTime);
-      setCurrent(currentTime);
-
       let res = await axios.get("http://172.16.0.53:8080/danh_sach");
       if (res && res.data) {
-        let dataFilterOnMonth = [];
-        let dataFilterOnYear = [];
         let tonkhoArr = [];
         let xuatArr = [];
         let nhapArr = [];
@@ -273,136 +220,9 @@ const ThongKeNhap = (props) => {
           }
         }
 
-        for (let i = 0; i < decodedData.length; i++) {
-          if (
-            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
-            "Đã duyệt"
-          ) {
-            let danhsachmucindanhap =
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.danhsachmucincuaphieu;
-
-            // Giả sử mỗi mục có một trường ngayTao kiểu Date
-            const filteredItemsOneMonth = danhsachmucindanhap.filter((item) => {
-              const itemDate = item.thoigiannhap;
-
-              let date1OneMonthAgo = parseDate(itemDate.split(" ")[0]);
-              let date2OneMonthAgo = parseDate(oneMonthAgoTime);
-
-              const isInRange =
-                date1OneMonthAgo >= date2OneMonthAgo &&
-                date1OneMonthAgo <= currentDate;
-
-              return isInRange;
-            });
-
-            dataFilterOnMonth = [
-              ...dataFilterOnMonth,
-              ...filteredItemsOneMonth,
-            ];
-          }
-        }
-
-        for (let i = 0; i < decodedData.length; i++) {
-          if (
-            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
-            "Đã duyệt"
-          ) {
-            let danhsachmucindanhap =
-              decodedData[i].decodedContent?.content?.danhsachphieu
-                ?.danhsachmucincuaphieu;
-
-            // Giả sử mỗi mục có một trường ngayTao kiểu Date
-            const filteredItemsOneYear = danhsachmucindanhap.filter((item) => {
-              const itemDate = item.thoigiannhap;
-
-              let date1OneYearAgo = parseDate(itemDate.split(" ")[0]);
-              let date2OneYearAgo = parseDate(oneYearAgoTime);
-
-              const isInRange =
-                date1OneYearAgo >= date2OneYearAgo &&
-                date1OneYearAgo <= currentDate;
-
-              return isInRange;
-            });
-
-            dataFilterOnYear = [...dataFilterOnYear, ...filteredItemsOneYear];
-          }
-        }
-
-        const initializeInkCounts = () => {
-          const counts = {};
-          Object.values(inkNameMapping).forEach((value) => {
-            counts[value] = 0;
-          });
-          return counts;
-        };
-
-        const inkCountsMotThang = initializeInkCounts();
-        const inkCountsMotNam = initializeInkCounts();
-
-        // Tính tổng số lượng và số lượng của từng loại mực
-        let totalCountMotThang = 0;
-        dataFilterOnMonth.forEach((item) => {
-          totalCountMotThang += 1;
-          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
-            setInkNameMapping((prevMapping) => ({
-              ...prevMapping,
-              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
-            }));
-          }
-          const inkKey =
-            inkNameMapping[item.tenmuc] ||
-            item.tenmuc.toLowerCase().replace(/\s+/g, "");
-          inkCountsMotThang[inkKey] = (inkCountsMotThang[inkKey] || 0) + 1;
-        });
-
-        let totalCountMotNam = 0;
-        dataFilterOnYear.forEach((item) => {
-          totalCountMotNam += 1;
-          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
-            setInkNameMapping((prevMapping) => ({
-              ...prevMapping,
-              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
-            }));
-          }
-          const inkKey =
-            inkNameMapping[item.tenmuc] ||
-            item.tenmuc.toLowerCase().replace(/\s+/g, "");
-          inkCountsMotNam[inkKey] = (inkCountsMotNam[inkKey] || 0) + 1;
-        });
-
-        const tableDataMotThang = [
-          {
-            tongSo: totalCountMotThang,
-            ...Object.fromEntries(
-              Object.entries(inkCountsMotThang).map(([key, value]) => [
-                key,
-                value || 0,
-              ])
-            ),
-          },
-        ];
-
-        const tableDataMotNam = [
-          {
-            tongSo: totalCountMotNam,
-            ...Object.fromEntries(
-              Object.entries(inkCountsMotNam).map(([key, value]) => [
-                key,
-                value || 0,
-              ])
-            ),
-          },
-        ];
-        console.log(tableDataMotThang);
-
         setDataDaXuat(xuatArr);
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
-
-        setDataMucInDaNhapMotThang(tableDataMotThang);
-        setDataMucInDaNhapMotNam(tableDataMotNam);
 
         setLoadingDataMucInDaNhap(false);
       }
@@ -459,56 +279,155 @@ const ThongKeNhap = (props) => {
     }
   };
 
-  const handleExportRowsExcelMucInDaNhapMotNam = (rows) => {
-    try {
-      const rowData = rows.map((row) => row.original);
-
-      let configDataArr = [];
-
-      for (let i = 0; i < rowData.length; i++) {
-        let configData = {
-          "Tổng cộng": rowData[i].tongSo,
-        };
-
-        // Dynamically add all ink types
-        Object.entries(inkNameMapping).forEach(([inkName, mappedName]) => {
-          configData[`Mực ${inkName}`] = rowData[i][mappedName];
-        });
-
-        configDataArr.push(configData);
-      }
-
-      // Tạo một workbook mới
-      const wb = XLSX.utils.book_new();
-
-      // Chuyển đổi dữ liệu thành worksheet
-      const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-      // Thêm worksheet vào workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Mực in đã nhập trong 1 năm");
-
-      // Tạo buffer
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-      // Chuyển buffer thành Blob
-      const blob = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-      });
-
-      // Lưu file
-      saveAs(blob, "thongkemucindanhaptrongmotnam.xlsx");
-    } catch (error) {
-      api["error"]({
-        message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
-      });
-    }
-  };
-
   const handleDangXuat = () => {
     localStorage.removeItem("token");
 
     navigate("/dangnhap");
+  };
+
+  const handleResetData = () => {
+    setFromDate(null);
+    setToDate(null);
+    setShowTable(false);
+  };
+
+  const handleSearchByDate = async () => {
+    if (!fromDate || !toDate) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Vui lòng chọn đầy đủ thời gian bắt đầu và kết thúc",
+      });
+      return;
+    }
+
+    if (fromDate.$d > toDate.$d) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Thời gian bắt đầu không được lớn hơn thời gian kết thúc",
+      });
+      return;
+    }
+
+    try {
+      let res = await axios.get("http://172.16.0.53:8080/danh_sach");
+      if (res && res.data) {
+        let dataFilterByDateRange = [];
+
+        const listData = res?.data;
+        const decodedData = [];
+
+        for (const item of listData) {
+          try {
+            let dataDecode = await handleDecodeData(item.content);
+            decodedData.push({
+              ...item,
+              decodedContent: dataDecode,
+            });
+          } catch (error) {
+            console.error("Error decoding item:", item, error);
+            api["error"]({
+              message: "Lỗi",
+              description:
+                "Đã xảy ra lỗi trong quá trình hiển thị thống kê nhập",
+            });
+          }
+        }
+
+        // Convert selected dates to timestamps for comparison
+        const fromTimestamp = fromDate.$d.getTime();
+        const toTimestamp = toDate.$d.getTime();
+
+        // Lọc dữ liệu theo khoảng thời gian
+        for (let i = 0; i < decodedData.length; i++) {
+          if (
+            decodedData[i].decodedContent?.content?.danhsachphieu?.trangthai ===
+            "Đã duyệt"
+          ) {
+            let danhsachmucindanhap =
+              decodedData[i].decodedContent?.content?.danhsachphieu
+                ?.danhsachmucincuaphieu;
+
+            const filteredItems = danhsachmucindanhap.filter((item) => {
+              const [datePart, timePart] = item.thoigiannhap.split(" ");
+              const [day, month, year] = datePart.split("-");
+              const [hours, minutes, seconds] = timePart.split(":");
+              const itemTimestamp = new Date(
+                year,
+                month - 1,
+                day,
+                hours,
+                minutes,
+                seconds
+              ).getTime();
+              return (
+                itemTimestamp >= fromTimestamp && itemTimestamp <= toTimestamp
+              );
+            });
+
+            dataFilterByDateRange = [
+              ...dataFilterByDateRange,
+              ...filteredItems,
+            ];
+          }
+        }
+
+        const initializeInkCounts = () => {
+          const counts = {};
+          Object.values(inkNameMapping).forEach((value) => {
+            counts[value] = 0;
+          });
+          return counts;
+        };
+
+        const inkCountsFilteredDate = initializeInkCounts();
+        let totalCountFilteredDate = 0;
+
+        dataFilterByDateRange.forEach((item) => {
+          totalCountFilteredDate += 1;
+          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
+            setInkNameMapping((prevMapping) => ({
+              ...prevMapping,
+              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
+            }));
+          }
+          const inkKey =
+            inkNameMapping[item.tenmuc] ||
+            item.tenmuc.toLowerCase().replace(/\s+/g, "");
+          inkCountsFilteredDate[inkKey] =
+            (inkCountsFilteredDate[inkKey] || 0) + 1;
+        });
+
+        const tableDataFilteredDate = [
+          {
+            tongSo: totalCountFilteredDate,
+            ...Object.fromEntries(
+              Object.entries(inkCountsFilteredDate).map(([key, value]) => [
+                key,
+                value || 0,
+              ])
+            ),
+          },
+        ];
+
+        const hasNonZeroValues =
+          tableDataFilteredDate[0].tongSo !== 0 ||
+          Object.values(inkCountsFilteredDate).some((value) => value !== 0);
+        console.log(tableDataFilteredDate);
+
+        if (!hasNonZeroValues) {
+          // setDataMucInDaNhap([]);
+          setShowTable(false);
+        } else {
+          setDataMucInDaNhap(tableDataFilteredDate);
+          setShowTable(true);
+        }
+      }
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: "Đã xảy ra lỗi trong quá trình tìm kiếm",
+      });
+    }
   };
 
   const columnsNhapMucIn = useMemo(() => {
@@ -531,9 +450,11 @@ const ThongKeNhap = (props) => {
     return [...baseColumns, ...dynamicColumns];
   }, [inkNameMapping]);
 
-  const tableNhapMucInTheoMotThang = useMaterialReactTable({
+  const columnsEmpty = useMemo(() => [], []);
+
+  const tableNhapMucInTheo = useMaterialReactTable({
     columns: columnsNhapMucIn,
-    data: dataMucInDaNhapMotThang,
+    data: dataMucInDaNhap,
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
@@ -573,46 +494,12 @@ const ThongKeNhap = (props) => {
     ),
   });
 
-  const tableNhapMucInTheoMotNam = useMaterialReactTable({
-    columns: columnsNhapMucIn,
-    data: dataMucInDaNhapMotNam,
+  const tableEmpty = useMaterialReactTable({
+    columns: columnsEmpty,
+    data: [],
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
-    state: { isLoading: loadingDataMucInDaNhap },
-    muiCircularProgressProps: {
-      color: "primary",
-      thickness: 5,
-      size: 55,
-    },
-    muiSkeletonProps: {
-      animation: "pulse",
-      height: 28,
-    },
-    paginationDisplayMode: "pages",
-    renderTopToolbarCustomActions: ({ table }) => (
-      <Box
-        sx={{
-          display: "flex",
-          gap: "15px",
-          padding: "8px",
-          flexWrap: "wrap",
-        }}
-      >
-        <ButtonBootstrap
-          className="btn btn-success"
-          disabled={table.getPrePaginationRowModel().rows.length === 0}
-          onClick={() =>
-            handleExportRowsExcelMucInDaNhapMotNam(
-              table.getPrePaginationRowModel().rows
-            )
-          }
-        >
-          <FileDownloadIcon />
-          Xuất file Excel
-        </ButtonBootstrap>
-      </Box>
-    ),
   });
 
   return (
@@ -690,87 +577,110 @@ const ThongKeNhap = (props) => {
           </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">
-          <span>DANH SÁCH CÁC MỰC IN ĐÃ NHẬP TRONG 1 THÁNG QUA</span>
-          <br />
-          <span>
-            (Từ ngày {oneMonthAgo} tới ngày {current})
-          </span>
+          <span>DANH SÁCH SỐ LƯỢNG MỰC IN ĐÃ NHẬP </span>
         </h4>
-        <div className="mb-3">
-          {dataMucInDaNhapMotThang && dataMucInDaNhapMotThang.length > 0 ? (
-            <>
-              {" "}
-              <Button
-                type="primary"
-                htmlType="submit"
-                onClick={handlePrintMucInDaNhapMotThang}
-              >
-                <PrinterFilled />
-                In danh sách
-              </Button>
-            </>
-          ) : (
-            <>
-              {" "}
-              <Button type="primary" htmlType="submit" disabled>
-                <PrinterFilled />
-                In danh sách
-              </Button>
-            </>
-          )}
+        <div className="row">
+          <div className="">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker"]}>
+                <DateTimePicker
+                  label="Chọn thời gian bắt đầu"
+                  views={[
+                    "year",
+                    "month",
+                    "day",
+                    "hours",
+                    "minutes",
+                    "seconds",
+                  ]}
+                  value={fromDate}
+                  onChange={(newValue) => setFromDate(newValue)}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+          <div className="">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={["DateTimePicker"]}>
+                <DateTimePicker
+                  label="Chọn thời gian kết thúc"
+                  views={[
+                    "year",
+                    "month",
+                    "day",
+                    "hours",
+                    "minutes",
+                    "seconds",
+                  ]}
+                  value={toDate}
+                  onChange={(newValue) => setToDate(newValue)}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+
+          <div className="">
+            <button
+              type="button"
+              className="btn btn-success mt-3"
+              onClick={handleSearchByDate}
+            >
+              Tìm kiếm
+            </button>
+          </div>
+          <div className="">
+            <button
+              type="button"
+              className="btn btn-danger mt-3"
+              onClick={handleResetData}
+            >
+              Đặt lại
+            </button>
+          </div>
         </div>
-        <div className="" style={{ marginBottom: "150px" }}>
-          <MaterialReactTable table={tableNhapMucInTheoMotThang} />
-        </div>
-        <h4 className="text-center mt-5 mb-5">
-          <span>DANH SÁCH CÁC MỰC IN ĐÃ NHẬP TRONG 1 NĂM QUA</span>
-          <br />
-          <span>
-            (Từ ngày {oneYearAgo} tới ngày {current})
-          </span>
-        </h4>
-        <div className="mb-3">
-          {dataMucInDaNhapMotNam && dataMucInDaNhapMotNam.length > 0 ? (
-            <>
-              {" "}
-              <Button
-                type="primary"
-                htmlType="submit"
-                onClick={handlePrintMucInDaNhapMotNam}
-              >
-                <PrinterFilled />
-                In danh sách
-              </Button>
-            </>
-          ) : (
-            <>
-              {" "}
-              <Button type="primary" htmlType="submit" disabled>
-                <PrinterFilled />
-                In danh sách
-              </Button>
-            </>
-          )}
-        </div>
-        <div className="" style={{ marginBottom: "150px" }}>
-          <MaterialReactTable table={tableNhapMucInTheoMotNam} />
-        </div>
+        <br />
+        {showTable ? (
+          <>
+            <div className="mb-3">
+              {dataMucInDaNhap && dataMucInDaNhap.length > 0 ? (
+                <>
+                  {" "}
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    onClick={handlePrintMucInDaNhapMotThang}
+                  >
+                    <PrinterFilled />
+                    In danh sách
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <Button type="primary" htmlType="submit" disabled>
+                    <PrinterFilled />
+                    In danh sách
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="" style={{ marginBottom: "150px" }}>
+              <MaterialReactTable table={tableNhapMucInTheo} />
+            </div>
+          </>
+        ) : (
+          <>
+            {" "}
+            <div className="" style={{ marginBottom: "150px" }}>
+              <MaterialReactTable table={tableEmpty} />
+            </div>
+          </>
+        )}
       </div>
       <div style={{ display: "none" }}>
-        <PrintTemplateThongKeMucInDaNhapMotThang
+        <PrintTemplateThongKeMucInDaNhap
           ref={componentRefMotThang}
-          data={dataMucInDaNhapMotThang}
-          oneMonthAgo={oneMonthAgo}
-          current={current}
-          inkNameMapping={inkNameMapping}
-        />
-      </div>
-      <div style={{ display: "none" }}>
-        <PrintTemplateThongKeMucInDaNhapMotNam
-          ref={componentRefMotNam}
-          data={dataMucInDaNhapMotNam}
-          oneYearAgo={oneYearAgo}
-          current={current}
+          data={dataMucInDaNhap}
           inkNameMapping={inkNameMapping}
         />
       </div>

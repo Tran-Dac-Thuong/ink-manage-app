@@ -260,15 +260,6 @@ const DanhSachMucInDaNhap = (props) => {
     }
   };
 
-  const isNumber = (value) => {
-    return typeof value === "number" && !isNaN(value);
-  };
-
-  const containsLetter = (str) => {
-    let regex = /[a-zA-Z]/;
-    return regex.test(str);
-  };
-
   const handleExportRowsPDF = (rows) => {
     try {
       const doc = new jsPDF();
@@ -285,19 +276,18 @@ const DanhSachMucInDaNhap = (props) => {
         i + 1,
         arr[0],
         arr[1],
-        arr[5],
-        !isNumber(arr[6]) ? arr[6] : "",
-        containsLetter(arr[7]) ? arr[7] : "",
-        arr[8],
-        arr[2],
         arr[3],
+        arr[5],
+        arr.length === 9 ? arr[7] : arr[6],
+        arr.length === 9 ? "Công ty TNHH Ngọc" : arr[7],
+        arr[2],
         arr[4],
       ]);
 
       autoTable(doc, {
         head: [tableHeaders],
         body: rearrangedArray,
-        styles: { font: "Roboto", fontStyle: "normal" },
+        styles: { font: "Roboto", fontStyle: "normal", fontSize: 8 },
       });
 
       doc.save("danhsachmucindanhap.pdf");
@@ -333,6 +323,11 @@ const DanhSachMucInDaNhap = (props) => {
         size: 150,
       },
       {
+        accessorKey: "qrcode",
+        header: "Mã QRCode",
+        size: 150,
+      },
+      {
         accessorKey: "tenphieu",
         header: "Tên phiếu",
         size: 150,
@@ -346,6 +341,7 @@ const DanhSachMucInDaNhap = (props) => {
         accessorKey: "nguoinhapmucin",
         header: "Người nhập",
         size: 150,
+        Cell: ({ cell }) => cell.getValue() || "Công ty TNHH Ngọc",
       },
     ],
     []

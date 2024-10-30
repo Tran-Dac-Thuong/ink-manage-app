@@ -43,6 +43,9 @@ const NhapMuc = (props) => {
 
   const [allInkLists, setAllInkLists] = useState([]);
 
+  const [scanBuffer, setScanBuffer] = useState("");
+  const [scanTimeout, setScanTimeout] = useState(null);
+
   const [role, setRole] = useState("");
 
   const navigate = useNavigate();
@@ -466,6 +469,29 @@ const NhapMuc = (props) => {
     }
   };
 
+  const handleScan = (e) => {
+    const value = e.target.value;
+    setScanBuffer(value);
+
+    // Clear timeout cũ nếu có
+    if (scanTimeout) {
+      clearTimeout(scanTimeout);
+    }
+
+    // Đặt timeout mới
+    const timeout = setTimeout(() => {
+      if (value) {
+        form.setFieldsValue({
+          qrcode: value,
+        });
+        handleThemMucInCay({ qrcode: value });
+        setScanBuffer("");
+      }
+    }, 100); // Đợi 100ms sau khi nhận ký tự cuối
+
+    setScanTimeout(timeout);
+  };
+
   const handleThemMucInCay = async (values) => {
     let InkArray = [...data] ? [...data] : [];
 
@@ -489,63 +515,6 @@ const NhapMuc = (props) => {
 
     const [, ngay, thang, nam, gio, phut, giay] = match.map(Number);
 
-    let res = await axios.post(
-      `http://172.16.0.53:8080/parse_name_id`,
-      { name_id: values.qrcode },
-      {
-        mode: "cors",
-      }
-    );
-
-    let dataInkDecode = res.data.name + "_" + res.data.id;
-
-    for (let i = 0; i < InkArray.length; i++) {
-      if (InkArray[i].qrcode === dataInkDecode) {
-        api["error"]({
-          message: "Thất bại",
-          description: "Mực in này đã được thêm trong phiếu này",
-        });
-        form.resetFields();
-        return;
-      }
-    }
-
-    // // Kiểm tra với tất cả danh sách mực in
-    // for (let i = 0; i < allInkLists.length; i++) {
-    //   if (
-    //     allInkLists[i].qrcode === dataInkDecode &&
-    //     dataPhieu?.loaiphieu === "Phiếu nhập"
-    //   ) {
-    //     api["error"]({
-    //       message: "Thất bại",
-    //       description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
-    //     });
-    //     form.resetFields();
-    //     return;
-    //   }
-    // }
-
-    let existsInkTonKho = dataTonKho.find(
-      (item) => item.qrcode === dataInkDecode
-    );
-
-    if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
-      api["error"]({
-        message: "Thất bại",
-        description: "Mực in này không có trong kho để xuất",
-      });
-      form.resetFields();
-      return;
-    }
-
-    if (existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu nhập") {
-      api["error"]({
-        message: "Thất bại",
-        description: "Mực in này đã có trong kho",
-      });
-      form.resetFields();
-      return;
-    }
     try {
       let res = await axios.post(
         `http://172.16.0.53:8080/parse_name_id`,
@@ -555,77 +524,146 @@ const NhapMuc = (props) => {
         }
       );
 
-      if (res && res.status === 200) {
-        let insertMucIn = {
-          tenmuc: res.data.name,
-          mamuc: res.data.id,
-          soluong: 1,
-          qrcode: dataInkDecode,
-          loaiphieu: dataPhieu?.loaiphieu,
-          tenphieu: dataPhieu?.tenphieu,
-          thoigiannhapmucin: currentTime,
-          nguoinhapmucin: tendangnhap,
-          ngay: ngay,
-          thang: thang,
-          nam: nam,
-          gio: gio,
-          phut: phut,
-          giay: giay,
-          inkId: generateRandomEightDigitNumber(),
-        };
+      let dataInkDecode = res.data.name + "_" + res.data.id;
 
-        InkArray.push(insertMucIn);
-
-        let newTaoPhieuData = {
-          danhsachphieu: {
-            loaiphieu: dataPhieu?.loaiphieu,
-            tenphieu: dataPhieu?.tenphieu,
-            ngaytaophieu: dataPhieu?.ngaytaophieu,
-            nguoitaophieu: dataPhieu?.nguoitaophieu,
-            khoaphongxuatmuc:
-              dataPhieu?.loaiphieu === "Phiếu nhập" ? "" : dataPhieu?.khoaphong,
-            trangthai:
-              dataPhieu?.loaiphieu === "Phiếu nhập"
-                ? "Chưa duyệt"
-                : "Chưa xuất",
-            ngayduyetphieu: "",
-            danhsachmucincuaphieu: InkArray,
-          },
-          danhsachtonkho: {},
-        };
-        let DataPhieuValues = {
-          content: newTaoPhieuData,
-        };
-
-        let jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
-        try {
-          await axios.get(
-            `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
-            {
-              mode: "cors",
-            }
-          );
-          api["success"]({
-            message: "Thành công",
-            description: "Nhập mực in vào phiếu thành công",
-          });
-
-          setStatus(randomString());
-        } catch (error) {
+      for (let i = 0; i < InkArray.length; i++) {
+        if (InkArray[i].qrcode === dataInkDecode) {
           api["error"]({
             message: "Thất bại",
-            description: "Đã xảy ra lỗi trong quá trình nhập mực in",
+            description: "Mực in này đã được thêm trong phiếu này",
           });
+          form.resetFields();
+          return;
         }
       }
+
+      // // Kiểm tra với tất cả danh sách mực in
+      // for (let i = 0; i < allInkLists.length; i++) {
+      //   if (
+      //     allInkLists[i].qrcode === dataInkDecode &&
+      //     dataPhieu?.loaiphieu === "Phiếu nhập"
+      //   ) {
+      //     api["error"]({
+      //       message: "Thất bại",
+      //       description: `Mực in này đã được thêm trong ${allInkLists[i].tenphieu}`,
+      //     });
+      //     form.resetFields();
+      //     return;
+      //   }
+      // }
+
+      let existsInkTonKho = dataTonKho.find(
+        (item) => item.qrcode === dataInkDecode
+      );
+
+      if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
+        api["error"]({
+          message: "Thất bại",
+          description: "Mực in này không có trong kho để xuất",
+        });
+        form.resetFields();
+        return;
+      }
+
+      if (existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu nhập") {
+        api["error"]({
+          message: "Thất bại",
+          description: "Mực in này đã có trong kho",
+        });
+        form.resetFields();
+        return;
+      }
+
+      try {
+        let res = await axios.post(
+          `http://172.16.0.53:8080/parse_name_id`,
+          { name_id: values.qrcode },
+          {
+            mode: "cors",
+          }
+        );
+
+        if (res && res.status === 200) {
+          let insertMucIn = {
+            tenmuc: res.data.name,
+            mamuc: res.data.id,
+            soluong: 1,
+            qrcode: dataInkDecode,
+            loaiphieu: dataPhieu?.loaiphieu,
+            tenphieu: dataPhieu?.tenphieu,
+            thoigiannhapmucin: currentTime,
+            nguoinhapmucin: tendangnhap,
+            ngay: ngay,
+            thang: thang,
+            nam: nam,
+            gio: gio,
+            phut: phut,
+            giay: giay,
+            inkId: generateRandomEightDigitNumber(),
+          };
+
+          InkArray.push(insertMucIn);
+
+          let newTaoPhieuData = {
+            danhsachphieu: {
+              loaiphieu: dataPhieu?.loaiphieu,
+              tenphieu: dataPhieu?.tenphieu,
+              ngaytaophieu: dataPhieu?.ngaytaophieu,
+              nguoitaophieu: dataPhieu?.nguoitaophieu,
+              khoaphongxuatmuc:
+                dataPhieu?.loaiphieu === "Phiếu nhập"
+                  ? ""
+                  : dataPhieu?.khoaphong,
+              trangthai:
+                dataPhieu?.loaiphieu === "Phiếu nhập"
+                  ? "Chưa duyệt"
+                  : "Chưa xuất",
+              ngayduyetphieu: "",
+              danhsachmucincuaphieu: InkArray,
+            },
+            danhsachtonkho: {},
+          };
+          let DataPhieuValues = {
+            content: newTaoPhieuData,
+          };
+
+          let jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
+          try {
+            await axios.get(
+              `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+              {
+                mode: "cors",
+              }
+            );
+            api["success"]({
+              message: "Thành công",
+              description: "Nhập mực in vào phiếu thành công",
+            });
+
+            setStatus(randomString());
+          } catch (error) {
+            api["error"]({
+              message: "Thất bại",
+              description: "Đã xảy ra lỗi trong quá trình nhập mực in",
+            });
+          }
+        }
+      } catch (error) {
+        api["error"]({
+          message: "Thất bại",
+          description:
+            "Vui lòng nhập đúng định dạng và mã mực in phải đủ 8 ký tự",
+        });
+      }
     } catch (error) {
+      console.log(error);
+
       api["error"]({
         message: "Thất bại",
         description:
           "Vui lòng nhập đúng định dạng và mã mực in phải đủ 8 ký tự",
       });
     }
-
     form.resetFields();
   };
 
@@ -1026,7 +1064,8 @@ const NhapMuc = (props) => {
         <h4 className="text-center mt-5">THÊM MỚI MỰC IN CHO SỐ PHIẾU</h4>
         <h4 className="text-center text-danger mb-5">{dataPhieu?.sophieu}</h4>
 
-        <Form form={form} name="control-hooks" onFinish={handleThemMucInCay}>
+        {/* <Form form={form} name="control-hooks" onFinish={handleThemMucInCay}> */}
+        <Form form={form} name="control-hooks">
           <Form.Item
             name="qrcode"
             rules={[
@@ -1039,10 +1078,12 @@ const NhapMuc = (props) => {
           >
             <Input
               autoFocus
+              value={scanBuffer}
               placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
               style={{
                 width: "100%",
               }}
+              onChange={handleScan}
             />
           </Form.Item>
         </Form>

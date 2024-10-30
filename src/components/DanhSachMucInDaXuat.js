@@ -297,11 +297,11 @@ const DanhSachMucInDaXuat = (props) => {
         i + 1,
         arr[0],
         arr[1],
+        arr[3],
         arr.length === 11 ? arr[10] : arr[18],
         arr.length === 11 ? arr[8] : arr[16],
         arr.length === 11 ? arr[7] : arr[15],
         arr[6],
-        arr[3],
         arr[2],
         arr[4],
         arr[5],
@@ -311,7 +311,7 @@ const DanhSachMucInDaXuat = (props) => {
       autoTable(doc, {
         head: [tableHeaders],
         body: rearrangedArray,
-        styles: { font: "Roboto", fontStyle: "normal" },
+        styles: { font: "Roboto", fontStyle: "normal", fontSize: 8 },
       });
 
       doc.save("danhsachmucindaxuat.pdf");
@@ -344,6 +344,11 @@ const DanhSachMucInDaXuat = (props) => {
       {
         accessorKey: "mamuc",
         header: "Mã mực",
+        size: 150,
+      },
+      {
+        accessorKey: "qrcode",
+        header: "Mã QRCode",
         size: 150,
       },
       {

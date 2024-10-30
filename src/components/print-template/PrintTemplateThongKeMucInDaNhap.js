@@ -1,29 +1,25 @@
-import React, { useEffect, useState } from "react";
-import "./PrintTemplateThongKeMucInDaNhapMotNam.scss";
+import React from "react";
+import "./PrintTemplateThongKeMucInDaNhap.scss";
 
-export const PrintTemplateThongKeMucInDaNhapMotNam = React.forwardRef(
+export const PrintTemplateThongKeMucInDaNhap = React.forwardRef(
   (props, ref) => {
     const dataInkPrint = props.data ? props.data : [];
 
     return (
       <>
-        <div className="print-preview_danhapmotnam" ref={ref}>
-          <div className="header_danhapmotnam">
+        <div className="print-preview_danhapmotthang" ref={ref}>
+          <div className="header_danhapmotthang">
             <div className="">
               <img src="../../../../../../../img/logo2.png" alt="" />
             </div>
           </div>
 
           <br />
-          <h4 className="title_danhapmotnam">
-            <span>THỐNG KÊ MỰC IN ĐÃ NHẬP TRONG 1 NĂM QUA</span>
-            <br />
-            <span>
-              (Từ ngày {props.oneYearAgo} tới ngày {props.current})
-            </span>
+          <h4 className="title_danhapmotthang">
+            <span>THỐNG KÊ SỐ LƯỢNG MỰC IN ĐÃ NHẬP</span>
           </h4>
           <br />
-          <table className="ink-table_danhapmotnam">
+          <table className="ink-table_danhapmotthang">
             <thead>
               <tr>
                 <th>Tổng cộng</th>
