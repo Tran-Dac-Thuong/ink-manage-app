@@ -379,43 +379,85 @@ const ThongKeNhap = (props) => {
           return counts;
         };
 
-        const inkCountsFilteredDate = initializeInkCounts();
+        // const inkCountsFilteredDate = initializeInkCounts();
+        // let totalCountFilteredDate = 0;
+
+        // dataFilterByDateRange.forEach((item) => {
+        //   totalCountFilteredDate += 1;
+        //   if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
+        //     setInkNameMapping((prevMapping) => ({
+        //       ...prevMapping,
+        //       [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
+        //     }));
+        //   }
+        //   const inkKey =
+        //     inkNameMapping[item.tenmuc] ||
+        //     item.tenmuc.toLowerCase().replace(/\s+/g, "");
+        //   inkCountsFilteredDate[inkKey] =
+        //     (inkCountsFilteredDate[inkKey] || 0) + 1;
+        // });
+
+        // const tableDataFilteredDate = [
+        //   {
+        //     tongSo: totalCountFilteredDate,
+        //     ...Object.fromEntries(
+        //       Object.entries(inkCountsFilteredDate).map(([key, value]) => [
+        //         key,
+        //         value || 0,
+        //       ])
+        //     ),
+        //   },
+        // ];
+
+        // const hasNonZeroValues =
+        //   tableDataFilteredDate[0].tongSo !== 0 ||
+        //   Object.values(inkCountsFilteredDate).some((value) => value !== 0);
+
+        const inkCountsFilteredDate = {};
         let totalCountFilteredDate = 0;
 
+        // Count inks
         dataFilterByDateRange.forEach((item) => {
           totalCountFilteredDate += 1;
-          if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
-            setInkNameMapping((prevMapping) => ({
-              ...prevMapping,
-              [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
-            }));
-          }
-          const inkKey =
-            inkNameMapping[item.tenmuc] ||
-            item.tenmuc.toLowerCase().replace(/\s+/g, "");
+          const inkKey = item.tenmuc;
           inkCountsFilteredDate[inkKey] =
             (inkCountsFilteredDate[inkKey] || 0) + 1;
         });
+
+        // Create new mapping with only non-zero inks
+        const newInkMapping = {};
+        Object.entries(inkCountsFilteredDate).forEach(([inkName, count]) => {
+          if (count > 0) {
+            newInkMapping[inkName] = inkName.toLowerCase().replace(/\s+/g, "");
+          }
+        });
+
+        // Set new mapping and create table data
+        setInkNameMapping(newInkMapping);
 
         const tableDataFilteredDate = [
           {
             tongSo: totalCountFilteredDate,
             ...Object.fromEntries(
-              Object.entries(inkCountsFilteredDate).map(([key, value]) => [
-                key,
-                value || 0,
-              ])
+              Object.entries(inkCountsFilteredDate)
+                .filter(([_, count]) => count > 0)
+                .map(([name, count]) => [
+                  name.toLowerCase().replace(/\s+/g, ""),
+                  count,
+                ])
             ),
           },
         ];
 
-        const hasNonZeroValues =
-          tableDataFilteredDate[0].tongSo !== 0 ||
-          Object.values(inkCountsFilteredDate).some((value) => value !== 0);
-        console.log(tableDataFilteredDate);
+        // if (!hasNonZeroValues) {
+        //   // setDataMucInDaNhap([]);
+        //   setShowTable(false);
+        // } else {
+        //   setDataMucInDaNhap(tableDataFilteredDate);
+        //   setShowTable(true);
+        // }
 
-        if (!hasNonZeroValues) {
-          // setDataMucInDaNhap([]);
+        if (totalCountFilteredDate === 0) {
           setShowTable(false);
         } else {
           setDataMucInDaNhap(tableDataFilteredDate);

@@ -510,6 +510,31 @@ const ThongKeXuat = (props) => {
           khoaPhongStats[khoaPhong][inkKey] += parseInt(item.soluong) || 0;
         });
 
+        // Track active ink types
+        const activeInkTypes = new Set();
+        Object.values(khoaPhongStats).forEach((stats) => {
+          Object.entries(stats).forEach(([key, value]) => {
+            if (key !== "soLuong" && value > 0) {
+              const originalInkName = Object.entries(inkNameMapping).find(
+                ([_, mappedName]) => mappedName === key
+              )?.[0];
+              if (originalInkName) {
+                activeInkTypes.add(originalInkName);
+              }
+            }
+          });
+        });
+
+        // Filter inkNameMapping
+        const filteredInkMapping = {};
+        Object.entries(inkNameMapping).forEach(([inkName, mappedValue]) => {
+          if (activeInkTypes.has(inkName)) {
+            filteredInkMapping[inkName] = mappedValue;
+          }
+        });
+
+        setInkNameMapping(filteredInkMapping);
+
         // Convert to array format
         let dataSoLuongMucIn = Object.entries(khoaPhongStats).map(
           ([tenKhoaPhong, stats], index) => ({
@@ -546,10 +571,10 @@ const ThongKeXuat = (props) => {
         }));
 
         if (dataSoLuongMucIn.length <= 0) {
+          setDataMucInDaXuat([]);
           setShowTable(false);
         } else {
           setDataMucInDaXuat(dataSoLuongMucIn);
-
           setShowTable(true);
         }
       }
