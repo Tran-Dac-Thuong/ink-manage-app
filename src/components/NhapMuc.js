@@ -1064,29 +1064,59 @@ const NhapMuc = (props) => {
         <h4 className="text-center mt-5">THÊM MỚI MỰC IN CHO SỐ PHIẾU</h4>
         <h4 className="text-center text-danger mb-5">{dataPhieu?.sophieu}</h4>
 
-        {/* <Form form={form} name="control-hooks" onFinish={handleThemMucInCay}> */}
-        <Form form={form} name="control-hooks">
-          <Form.Item
-            name="qrcode"
-            rules={[
-              {
-                required: true,
-                whitespace: true,
-                message: "Vui lòng nhập mực in",
-              },
-            ]}
-          >
-            <Input
-              autoFocus
-              value={scanBuffer}
-              placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
-              style={{
-                width: "100%",
-              }}
-              onChange={handleScan}
-            />
-          </Form.Item>
-        </Form>
+        {dataPhieu?.loaiphieu === "Phiếu nhập" ? (
+          <>
+            <Form
+              form={form}
+              name="control-hooks"
+              onFinish={handleThemMucInCay}
+            >
+              <Form.Item
+                name="qrcode"
+                rules={[
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: "Vui lòng nhập mực in",
+                  },
+                ]}
+              >
+                <Input
+                  autoFocus
+                  placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Form>
+          </>
+        ) : (
+          <>
+            <Form form={form} name="control-hooks">
+              <Form.Item
+                name="qrcode"
+                rules={[
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: "Vui lòng nhập mực in",
+                  },
+                ]}
+              >
+                <Input
+                  autoFocus
+                  value={scanBuffer}
+                  placeholder="Nhập mực in đúng với định dạng sau: tenmucin_mamucin"
+                  style={{
+                    width: "100%",
+                  }}
+                  onChange={handleScan}
+                />
+              </Form.Item>
+            </Form>
+          </>
+        )}
 
         <div className="d-flex justify-content-between">
           <h5 className="mt-3">CÁC MỰC IN ĐÃ THÊM</h5>
