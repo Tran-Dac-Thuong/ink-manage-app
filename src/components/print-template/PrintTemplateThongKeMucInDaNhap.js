@@ -22,10 +22,9 @@ export const PrintTemplateThongKeMucInDaNhap = React.forwardRef(
           <table className="ink-table_danhapmotthang">
             <thead>
               <tr>
-                <th>Tổng cộng</th>
-                {Object.keys(props.inkNameMapping).map((inkName) => (
-                  <th key={inkName}>{inkName}</th>
-                ))}
+                <th>STT</th>
+                <th>Tên hàng</th>
+                <th>Số lượng</th>
               </tr>
             </thead>
             <tbody>
@@ -35,12 +34,9 @@ export const PrintTemplateThongKeMucInDaNhap = React.forwardRef(
                   return (
                     <>
                       <tr key={index}>
-                        <td>{item.tongSo}</td>
-                        {Object.entries(props.inkNameMapping).map(
-                          ([inkName, mappedName]) => (
-                            <td key={mappedName}>{item[mappedName]}</td>
-                          )
-                        )}
+                        <td>{item.stt}</td>
+                        <td>{item.tenmuc}</td>
+                        <td>{item.soluong}</td>
                       </tr>
                     </>
                   );

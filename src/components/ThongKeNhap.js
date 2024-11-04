@@ -21,6 +21,19 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 
+const FULL_REFILL_INKS = [
+  "76A",
+  "26A",
+  "337A",
+  "49A",
+  "05A/80",
+  "05A/80A",
+  "12A",
+  "85A",
+  "78A",
+  "79A",
+];
+
 const ThongKeNhap = (props) => {
   const [loadingDataMucInDaNhap, setLoadingDataMucInDaNhap] = useState(true);
   const [dataTonkho, setDataTonKho] = useState([]);
@@ -234,49 +247,98 @@ const ThongKeNhap = (props) => {
     }
   };
 
-  const handleExportRowsExcelMucInDaNhapMotThang = (rows) => {
-    try {
-      const rowData = rows.map((row) => row.original);
+  // const handleExportRowsExcelMucInDaNhapMotThang = (rows) => {
+  //   try {
+  //     const rowData = rows.map((row) => row.original);
 
-      let configDataArr = [];
+  //     let configDataArr = [];
 
-      for (let i = 0; i < rowData.length; i++) {
-        let configData = {
-          "Tổng cộng": rowData[i].tongSo,
-        };
+  //     for (let i = 0; i < rowData.length; i++) {
+  //       let configData = {
+  //         "Tổng cộng": rowData[i].tongSo,
+  //       };
 
-        Object.entries(inkNameMapping).forEach(([inkName, mappedName]) => {
-          configData[`Mực ${inkName}`] = rowData[i][mappedName];
-        });
+  //       Object.entries(inkNameMapping).forEach(([inkName, mappedName]) => {
+  //         configData[`Mực ${inkName}`] = rowData[i][mappedName];
+  //       });
 
-        configDataArr.push(configData);
+  //       configDataArr.push(configData);
+  //     }
+
+  //     // Tạo một workbook mới
+  //     const wb = XLSX.utils.book_new();
+
+  //     // Chuyển đổi dữ liệu thành worksheet
+  //     const ws = XLSX.utils.json_to_sheet(configDataArr);
+
+  //     // Thêm worksheet vào workbook
+  //     XLSX.utils.book_append_sheet(wb, ws, "Mực in đã nhập trong 1 tháng");
+
+  //     // Tạo buffer
+  //     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+  //     // Chuyển buffer thành Blob
+  //     const blob = new Blob([excelBuffer], {
+  //       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+  //     });
+
+  //     // Lưu file
+  //     saveAs(blob, "thongkemucindanhaptrongmotthang.xlsx");
+  //   } catch (error) {
+  //     api["error"]({
+  //       message: "Thất bại",
+  //       description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+  //     });
+  //   }
+  // };
+
+  const processInkData = (inkCountsFilteredDate) => {
+    let fullRefillTotal = 0;
+    const processedData = [];
+    let currentIndex = 1;
+
+    Object.entries(inkCountsFilteredDate).forEach(([name, count]) => {
+      if (FULL_REFILL_INKS.includes(name)) {
+        fullRefillTotal += count;
       }
+    });
 
-      // Tạo một workbook mới
-      const wb = XLSX.utils.book_new();
-
-      // Chuyển đổi dữ liệu thành worksheet
-      const ws = XLSX.utils.json_to_sheet(configDataArr);
-
-      // Thêm worksheet vào workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Mực in đã nhập trong 1 tháng");
-
-      // Tạo buffer
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-
-      // Chuyển buffer thành Blob
-      const blob = new Blob([excelBuffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
-      });
-
-      // Lưu file
-      saveAs(blob, "thongkemucindanhaptrongmotthang.xlsx");
-    } catch (error) {
-      api["error"]({
-        message: "Thất bại",
-        description: "Đã xảy ra lỗi trong quá trình xuất file Excel",
+    if (fullRefillTotal > 0) {
+      processedData.push({
+        stt: currentIndex++,
+        tenmuc: "Nạp mực toàn phần (12A, 76A, 78A, 85A, 49A,...)",
+        soluong: fullRefillTotal,
       });
     }
+
+    Object.entries(inkCountsFilteredDate).forEach(([name, count]) => {
+      if (!FULL_REFILL_INKS.includes(name)) {
+        processedData.push({
+          stt: currentIndex++,
+          tenmuc: name,
+          soluong: count,
+        });
+      }
+    });
+
+    return processedData;
+  };
+
+  const handleExportRowsExcelMucInDaNhapMotThang = (rows) => {
+    const rowData = rows.map((row) => ({
+      STT: row.original.stt,
+      "Tên hàng": row.original.tenmuc,
+      "Số lượng": row.original.soluong,
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rowData);
+    XLSX.utils.book_append_sheet(wb, ws, "thongkenhaphang");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+    });
+    saveAs(blob, "thongkemucindanhap.xlsx");
   };
 
   const handleDangXuat = () => {
@@ -371,96 +433,63 @@ const ThongKeNhap = (props) => {
           }
         }
 
-        const initializeInkCounts = () => {
-          const counts = {};
-          Object.values(inkNameMapping).forEach((value) => {
-            counts[value] = 0;
-          });
-          return counts;
-        };
-
-        // const inkCountsFilteredDate = initializeInkCounts();
+        // const inkCountsFilteredDate = {};
         // let totalCountFilteredDate = 0;
 
+        // // Count inks
         // dataFilterByDateRange.forEach((item) => {
         //   totalCountFilteredDate += 1;
-        //   if (!inkNameMapping.hasOwnProperty(item.tenmuc)) {
-        //     setInkNameMapping((prevMapping) => ({
-        //       ...prevMapping,
-        //       [item.tenmuc]: item.tenmuc.toLowerCase().replace(/\s+/g, ""),
-        //     }));
-        //   }
-        //   const inkKey =
-        //     inkNameMapping[item.tenmuc] ||
-        //     item.tenmuc.toLowerCase().replace(/\s+/g, "");
+        //   const inkKey = item.tenmuc;
         //   inkCountsFilteredDate[inkKey] =
         //     (inkCountsFilteredDate[inkKey] || 0) + 1;
         // });
+
+        // // Create new mapping with only non-zero inks
+        // const newInkMapping = {};
+        // Object.entries(inkCountsFilteredDate).forEach(([inkName, count]) => {
+        //   if (count > 0) {
+        //     newInkMapping[inkName] = inkName.toLowerCase().replace(/\s+/g, "");
+        //   }
+        // });
+
+        // // Set new mapping and create table data
+        // setInkNameMapping(newInkMapping);
 
         // const tableDataFilteredDate = [
         //   {
         //     tongSo: totalCountFilteredDate,
         //     ...Object.fromEntries(
-        //       Object.entries(inkCountsFilteredDate).map(([key, value]) => [
-        //         key,
-        //         value || 0,
-        //       ])
+        //       Object.entries(inkCountsFilteredDate)
+        //         .filter(([_, count]) => count > 0)
+        //         .map(([name, count]) => [
+        //           name.toLowerCase().replace(/\s+/g, ""),
+        //           count,
+        //         ])
         //     ),
         //   },
         // ];
 
-        // const hasNonZeroValues =
-        //   tableDataFilteredDate[0].tongSo !== 0 ||
-        //   Object.values(inkCountsFilteredDate).some((value) => value !== 0);
-
         const inkCountsFilteredDate = {};
-        let totalCountFilteredDate = 0;
-
-        // Count inks
         dataFilterByDateRange.forEach((item) => {
-          totalCountFilteredDate += 1;
           const inkKey = item.tenmuc;
           inkCountsFilteredDate[inkKey] =
             (inkCountsFilteredDate[inkKey] || 0) + 1;
         });
 
-        // Create new mapping with only non-zero inks
-        const newInkMapping = {};
-        Object.entries(inkCountsFilteredDate).forEach(([inkName, count]) => {
-          if (count > 0) {
-            newInkMapping[inkName] = inkName.toLowerCase().replace(/\s+/g, "");
-          }
-        });
+        const tableData = processInkData(inkCountsFilteredDate);
 
-        // Set new mapping and create table data
-        setInkNameMapping(newInkMapping);
+        // const tableData = Object.entries(inkCountsFilteredDate)
+        //   .filter(([_, count]) => count > 0)
+        //   .map(([name, count], index) => ({
+        //     stt: index + 1,
+        //     tenmuc: name,
+        //     soluong: count,
+        //   }));
 
-        const tableDataFilteredDate = [
-          {
-            tongSo: totalCountFilteredDate,
-            ...Object.fromEntries(
-              Object.entries(inkCountsFilteredDate)
-                .filter(([_, count]) => count > 0)
-                .map(([name, count]) => [
-                  name.toLowerCase().replace(/\s+/g, ""),
-                  count,
-                ])
-            ),
-          },
-        ];
-
-        // if (!hasNonZeroValues) {
-        //   // setDataMucInDaNhap([]);
-        //   setShowTable(false);
-        // } else {
-        //   setDataMucInDaNhap(tableDataFilteredDate);
-        //   setShowTable(true);
-        // }
-
-        if (totalCountFilteredDate === 0) {
+        if (tableData.length === 0) {
           setShowTable(false);
         } else {
-          setDataMucInDaNhap(tableDataFilteredDate);
+          setDataMucInDaNhap(tableData);
           setShowTable(true);
         }
       }
@@ -472,25 +501,46 @@ const ThongKeNhap = (props) => {
     }
   };
 
-  const columnsNhapMucIn = useMemo(() => {
-    const baseColumns = [
+  // const columnsNhapMucIn = useMemo(() => {
+  //   const baseColumns = [
+  //     {
+  //       accessorKey: "tongSo",
+  //       header: "Tổng cộng",
+  //       size: 80,
+  //     },
+  //   ];
+
+  //   const dynamicColumns = Object.entries(inkNameMapping).map(
+  //     ([originalName, mappedName]) => ({
+  //       accessorKey: mappedName,
+  //       header: originalName,
+  //       size: 80,
+  //     })
+  //   );
+
+  //   return [...baseColumns, ...dynamicColumns];
+  // }, [inkNameMapping]);
+
+  const columnsNhapMucIn = useMemo(
+    () => [
       {
-        accessorKey: "tongSo",
-        header: "Tổng cộng",
+        accessorKey: "stt",
+        header: "STT",
         size: 80,
       },
-    ];
-
-    const dynamicColumns = Object.entries(inkNameMapping).map(
-      ([originalName, mappedName]) => ({
-        accessorKey: mappedName,
-        header: originalName,
-        size: 80,
-      })
-    );
-
-    return [...baseColumns, ...dynamicColumns];
-  }, [inkNameMapping]);
+      {
+        accessorKey: "tenmuc",
+        header: "Tên hàng",
+        size: 200,
+      },
+      {
+        accessorKey: "soluong",
+        header: "Số lượng",
+        size: 120,
+      },
+    ],
+    []
+  );
 
   const columnsEmpty = useMemo(() => [], []);
 
