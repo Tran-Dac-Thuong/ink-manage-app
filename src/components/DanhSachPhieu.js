@@ -676,6 +676,7 @@ const InkManager = (props) => {
   const tablePhieuNhap = useMaterialReactTable({
     columns: columnsPhieuNhap,
     data: dataPhieuNhap,
+    enableEditing: true,
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
