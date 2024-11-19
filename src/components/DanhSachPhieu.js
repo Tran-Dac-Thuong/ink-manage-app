@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import { Box } from "@mui/material";
+import { Box, IconButton } from "@mui/material";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
 
@@ -23,6 +23,10 @@ const InkManager = (props) => {
   const [dataTonkho, setDataTonKho] = useState([]);
   const [dataDaXuat, setDataDaXuat] = useState([]);
   const [dataDaNhap, setDataDaNhap] = useState([]);
+  const [dataSoLuongMucInDaNhap, setDataSoLuongMucInDaNhap] = useState([]);
+  const [dataSoLuongMucInDaXuat, setDataSoLuongMucInDaXuat] = useState([]);
+  const [dataSoLuongMucInTonKho, setDataSoLuongMucInTonKho] = useState([]);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [encodeWorkerDuyet] = useState(
     () => new Worker("encodeWorkerDuyet.js")
@@ -87,6 +91,38 @@ const InkManager = (props) => {
         console.log("Giải mã vai trò không thành công");
       }
     });
+  };
+
+  // const validateRequired = (value) => !!value.length;
+
+  // const validateInk = (ink) => {
+  //   return {
+  //     tenphieu: !validateRequired(ink.tenphieu)
+  //       ? "Tên phiếu không được để trống"
+  //       : "",
+  //     loaiphieu: !validateRequired(ink.loaiphieu)
+  //       ? "Loại phiếu không được để trống"
+  //       : "",
+  //     ngaytaophieu: !validateRequired(ink.ngaytaophieu)
+  //       ? "Ngày tạo phiếu không được để trống"
+  //       : "",
+  //     trangthai: !validateRequired(ink.trangthai)
+  //       ? "Trang thái không được để trống"
+  //       : "",
+  //     ngayduyetphieu: !validateRequired(ink.ngayduyetphieu)
+  //       ? "Ngày duyệt phiếu không được để trống"
+  //       : "",
+  //   };
+  // };
+
+  const validateInk = (ink) => {
+    return {
+      tenphieu: !ink.tenphieu ? "Tên phiếu là bắt buộc" : "",
+      loaiphieu: !ink.loaiphieu ? "Loại phiếu là bắt buộc" : "",
+      ngaytaophieu: !ink.ngaytaophieu ? "Ngày tạo phiếu là bắt buộc" : "",
+      trangthai: !ink.trangthai ? "Trạng thái là bắt buộc" : "",
+      ngayduyetphieu: !ink.ngayduyetphieu ? "Ngày duyệt phiếu là bắt buộc" : "",
+    };
   };
 
   useEffect(() => {
@@ -340,6 +376,108 @@ const InkManager = (props) => {
     }
   };
 
+  useEffect(() => {
+    const fetchDataSoLuongDaNhap = async () => {
+      try {
+        let grouped = {};
+
+        // Duyệt qua từng phần tử trong mảng ban đầu
+        for (let i = 0; i < dataDaNhap.length; i++) {
+          let prefix = dataDaNhap[i].tenmuc;
+          // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
+          if (grouped[prefix]) {
+            grouped[prefix] += dataDaNhap[i].soluong;
+          } else {
+            // Nếu chưa có nhóm này, khởi tạo với số lượng hiện tại
+            grouped[prefix] = dataDaNhap[i].soluong;
+          }
+        }
+
+        // Chuyển đổi đối tượng thành mảng kết quả
+        let result = [];
+        for (const prefix in grouped) {
+          result.push({ qrcode: prefix, soluong: grouped[prefix] });
+        }
+
+        setDataSoLuongMucInDaNhap(result);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình hiển thị số lượng mực in",
+        });
+      }
+    };
+    fetchDataSoLuongDaNhap();
+  }, [dataDaNhap]);
+
+  useEffect(() => {
+    const fetchDataSoLuongDaXuat = async () => {
+      try {
+        let grouped = {};
+
+        // Duyệt qua từng phần tử trong mảng ban đầu
+        for (let i = 0; i < dataDaXuat.length; i++) {
+          let prefix = dataDaXuat[i].tenmuc;
+          // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
+          if (grouped[prefix]) {
+            grouped[prefix] += dataDaXuat[i].soluong;
+          } else {
+            // Nếu chưa có nhóm này, khởi tạo với số lượng hiện tại
+            grouped[prefix] = dataDaXuat[i].soluong;
+          }
+        }
+
+        // Chuyển đổi đối tượng thành mảng kết quả
+        let result = [];
+        for (const prefix in grouped) {
+          result.push({ qrcode: prefix, soluong: grouped[prefix] });
+        }
+
+        setDataSoLuongMucInDaXuat(result);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình hiển thị số lượng mực in",
+        });
+      }
+    };
+    fetchDataSoLuongDaXuat();
+  }, [dataDaXuat]);
+
+  useEffect(() => {
+    const fetchDataSoLuongTonKho = async () => {
+      try {
+        let grouped = {};
+
+        // Duyệt qua từng phần tử trong mảng ban đầu
+        for (let i = 0; i < dataTonkho.length; i++) {
+          let prefix = dataTonkho[i].tenmuc;
+          // Nếu đối tượng đã có nhóm này, cộng thêm số lượng
+          if (grouped[prefix]) {
+            grouped[prefix] += dataTonkho[i].soluong;
+          } else {
+            // Nếu chưa có nhóm này, khởi tạo với số lượng hiện tại
+            grouped[prefix] = dataTonkho[i].soluong;
+          }
+        }
+
+        // Chuyển đổi đối tượng thành mảng kết quả
+        let result = [];
+        for (const prefix in grouped) {
+          result.push({ qrcode: prefix, soluong: grouped[prefix] });
+        }
+
+        setDataSoLuongMucInTonKho(result);
+      } catch (error) {
+        api["error"]({
+          message: "Lỗi",
+          description: "Đã xảy ra lỗi trong quá trình hiển thị số lượng mực in",
+        });
+      }
+    };
+    fetchDataSoLuongTonKho();
+  }, [dataTonkho]);
+
   const handleDangXuat = () => {
     localStorage.removeItem("token");
 
@@ -351,16 +489,31 @@ const InkManager = (props) => {
       {
         accessorKey: "stt",
         header: "STT",
+        // enableEditing: false,
         size: 100,
       },
       {
         accessorKey: "tenphieu",
         header: "Tên phiếu",
         size: 100,
+        // muiEditTextFieldProps: {
+        //   required: true,
+        //   error: !!validationErrors?.tenphieu,
+        //   helperText: validationErrors?.tenphieu,
+
+        //   //remove any previous validation errors when user focuses on the input
+        //   onFocus: () =>
+        //     setValidationErrors({
+        //       ...validationErrors,
+        //       tenphieu: undefined,
+        //     }),
+        //   //optionally add validation checking for onBlur or onChange
+        // },
       },
       {
         accessorKey: "masophieu",
         header: "Mã số phiếu",
+        enableEditing: false,
         size: 100,
       },
 
@@ -368,6 +521,18 @@ const InkManager = (props) => {
         accessorKey: "loaiphieu",
         header: "Loại phiếu",
         size: 100,
+        // muiEditTextFieldProps: {
+        //   required: true,
+        //   error: !!validationErrors?.loaiphieu,
+        //   helperText: validationErrors?.loaiphieu,
+        //   //remove any previous validation errors when user focuses on the input
+        //   onFocus: () =>
+        //     setValidationErrors({
+        //       ...validationErrors,
+        //       loaiphieu: undefined,
+        //     }),
+        //   //optionally add validation checking for onBlur or onChange
+        // },
         Cell: ({ cell }) => (
           <Box
             component="span"
@@ -390,11 +555,35 @@ const InkManager = (props) => {
         accessorKey: "ngaytaophieu",
         header: "Ngày tạo phiếu",
         size: 100,
+        // muiEditTextFieldProps: {
+        //   required: true,
+        //   error: !!validationErrors?.ngaytaophieu,
+        //   helperText: validationErrors?.ngaytaophieu,
+        //   //remove any previous validation errors when user focuses on the input
+        //   onFocus: () =>
+        //     setValidationErrors({
+        //       ...validationErrors,
+        //       ngaytaophieu: undefined,
+        //     }),
+        //   //optionally add validation checking for onBlur or onChange
+        // },
       },
       {
         accessorKey: "trangthai",
         header: "Trạng thái",
         size: 100,
+        // muiEditTextFieldProps: {
+        //   required: true,
+        //   error: !!validationErrors?.trangthai,
+        //   helperText: validationErrors?.trangthai,
+        //   //remove any previous validation errors when user focuses on the input
+        //   onFocus: () =>
+        //     setValidationErrors({
+        //       ...validationErrors,
+        //       trangthai: undefined,
+        //     }),
+        //   //optionally add validation checking for onBlur or onChange
+        // },
         Cell: ({ cell }) => (
           <Box
             component="span"
@@ -419,6 +608,18 @@ const InkManager = (props) => {
         accessorKey: "ngayduyetphieu",
         header: "Ngày duyệt phiếu",
         size: 100,
+        // muiEditTextFieldProps: {
+        //   required: true,
+        //   error: !!validationErrors?.ngayduyetphieu,
+        //   helperText: validationErrors?.ngayduyetphieu,
+        //   //remove any previous validation errors when user focuses on the input
+        //   onFocus: () =>
+        //     setValidationErrors({
+        //       ...validationErrors,
+        //       ngayduyetphieu: undefined,
+        //     }),
+        //   //optionally add validation checking for onBlur or onChange
+        // },
       },
     ],
     []
@@ -673,9 +874,22 @@ const InkManager = (props) => {
     }
   };
 
+  const handleSaveUser = async ({ values, table }) => {
+    const newValidationErrors = validateInk(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors);
+
+      return;
+    }
+    setValidationErrors({});
+
+    table.setEditingRow(null);
+  };
+
   const tablePhieuNhap = useMaterialReactTable({
     columns: columnsPhieuNhap,
     data: dataPhieuNhap,
+    // editDisplayMode: "row",
     enableEditing: true,
     enableHiding: false,
     enableDensityToggle: false,
@@ -708,10 +922,22 @@ const InkManager = (props) => {
         size: 100,
       },
     },
+
+    // onEditingRowCancel: () => setValidationErrors({}),
+    // onEditingRowSave: handleSaveUser,
+
     renderRowActions: ({ row, table }) =>
       row.original.loaiphieu === "Phiếu nhập" &&
       row.original.trangthai === "Đã duyệt" ? (
         <>
+          {/* <Button
+            onClick={() => table.setEditingRow(row)}
+            type="primary"
+            danger
+            htmlType="submit"
+          >
+            Chỉnh sửa
+          </Button> */}
           {role === "Người duyệt" ? (
             <Box sx={{ display: "flex", gap: "1rem" }}>
               {!coMucInDaXuat(row.original.danhsachmucincuaphieu) ? (
@@ -782,6 +1008,14 @@ const InkManager = (props) => {
         </>
       ) : (
         <>
+          {/* <Button
+            onClick={() => table.setEditingRow(row)}
+            type="primary"
+            danger
+            htmlType="submit"
+          >
+            Chỉnh sửa
+          </Button> */}
           {role === "Người duyệt" ? (
             row.original.danhsachmucincuaphieu.length > 0 ? (
               <Box sx={{ display: "flex", gap: "1rem" }}>
@@ -955,9 +1189,8 @@ const InkManager = (props) => {
           <img src="../img/logo2.png" alt="" />
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH PHIẾU</h4>
-        <div className="mb-2"></div>
 
-        <div className="mt-2 mb-3 d-flex">
+        <div className="mt-2 mb-5 d-flex">
           <Link to="/taophieu">
             <button type="button" className="btn btn-info me-2">
               Tạo phiếu
@@ -1018,6 +1251,78 @@ const InkManager = (props) => {
               <Dropdown.Item onClick={handleDangXuat}>Đăng xuất</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
+        </div>
+        <div className="mb-5">
+          <h5>SỐ LƯỢNG ĐÃ NHẬP CỦA TỪNG LOẠI MỰC</h5>
+          <div className="d-flex flex-wrap gap-2">
+            {dataSoLuongMucInDaNhap && dataSoLuongMucInDaNhap.length > 0 ? (
+              dataSoLuongMucInDaNhap.map((item, index) => (
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  style={{ fontWeight: "bold" }}
+                  key={index}
+                >
+                  {item.qrcode}{" "}
+                  <span className="badge bg-danger">{item.soluong}</span>
+                </button>
+              ))
+            ) : (
+              <>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="mb-5">
+          <h5>SỐ LƯỢNG ĐÃ XUẤT CỦA TỪNG LOẠI MỰC</h5>
+          <div className="d-flex flex-wrap gap-2">
+            {dataSoLuongMucInDaXuat && dataSoLuongMucInDaXuat.length > 0 ? (
+              dataSoLuongMucInDaXuat.map((item, index) => (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  style={{ fontWeight: "bold" }}
+                  key={index}
+                >
+                  {item.qrcode}{" "}
+                  <span class="badge bg-success">{item.soluong}</span>
+                </button>
+              ))
+            ) : (
+              <>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="mb-5">
+          <h5>SỐ LƯỢNG TỒN KHO CỦA TỪNG LOẠI MỰC</h5>
+          <div className="d-flex flex-wrap gap-2">
+            {dataSoLuongMucInTonKho && dataSoLuongMucInTonKho.length > 0 ? (
+              dataSoLuongMucInTonKho.map((item, index) => (
+                <button
+                  type="button"
+                  className="btn btn-warning"
+                  style={{ fontWeight: "bold" }}
+                  key={index}
+                >
+                  {item.qrcode}{" "}
+                  <span class="badge bg-danger">{item.soluong}</span>
+                </button>
+              ))
+            ) : (
+              <>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <div className="d-flex justify-content-between">
           <h5 className="mt-1">DANH SÁCH CÁC PHIẾU NHẬP</h5>
