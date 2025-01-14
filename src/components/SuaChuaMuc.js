@@ -562,7 +562,7 @@ const SuaChuaMuc = (props) => {
 
                 api["success"]({
                   message: "Thành công",
-                  description: "Đã cập nhật thông tin sửa chữa mực",
+                  description: "Mực in đã được thêm vào danh sách sửa chữa",
                 });
                 form.resetFields();
                 return;

@@ -328,7 +328,7 @@ const HoanTraMuc = (props) => {
             api["error"]({
               message: "Thất bại",
               description:
-                "Mực này chưa được xuất khỏi kho nên không thể hoàn trả",
+                "Mực này chưa được xuất khỏi kho nên không thể thu hồi",
             });
             form.resetFields();
             return;
@@ -382,7 +382,7 @@ const HoanTraMuc = (props) => {
                 if (timThayMuc.hoantra === 1 && soLuongPhieuChuaMuc === 1) {
                   api["error"]({
                     message: "Thất bại",
-                    description: "Mực này đã được hoàn trả trước đó",
+                    description: "Mực này đã được thu hồi trước đó",
                   });
                   form.resetFields();
                   return;
@@ -409,7 +409,7 @@ const HoanTraMuc = (props) => {
 
                 api["success"]({
                   message: "Thành công",
-                  description: "Đã cập nhật thông tin hoàn trả mực",
+                  description: "Mực in đã được thu hồi",
                 });
                 form.resetFields();
                 return;
