@@ -297,129 +297,148 @@ const HoanTraMuc = (props) => {
         let soLuongPhieuChuaMuc = 0;
         let mucDaXuat = false;
 
-        // Kiểm tra xem mực đã được xuất chưa
-        for (const item of listData) {
-          let dataDecode = await handleDecodeData(item.content);
-          if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
-            const danhsachmucin =
-              dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
-            if (danhsachmucin?.some((mucin) => mucin.qrcode === qrcodeScan)) {
-              mucDaXuat = true;
-              break;
+        try {
+          let res = await axios.post(
+            `http://172.16.0.53:8080/parse_name_id`,
+            { name_id: qrcodeScan },
+            {
+              mode: "cors",
+            }
+          );
+
+          let dataInkDecode = res.data.name + "_" + res.data.id;
+
+          // Kiểm tra xem mực đã được xuất chưa
+          for (const item of listData) {
+            let dataDecode = await handleDecodeData(item.content);
+            if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
+              const danhsachmucin =
+                dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
+              if (
+                danhsachmucin?.some((mucin) => mucin.qrcode === dataInkDecode)
+              ) {
+                mucDaXuat = true;
+                break;
+              }
             }
           }
-        }
 
-        // Nếu mực chưa được xuất, hiển thị thông báo lỗi
-        if (!mucDaXuat) {
-          api["error"]({
-            message: "Thất bại",
-            description:
-              "Mực này chưa được xuất khỏi kho nên không thể hoàn trả",
-          });
-          form.resetFields();
-          return;
-        }
+          // Nếu mực chưa được xuất, hiển thị thông báo lỗi
+          if (!mucDaXuat) {
+            api["error"]({
+              message: "Thất bại",
+              description:
+                "Mực này chưa được xuất khỏi kho nên không thể hoàn trả",
+            });
+            form.resetFields();
+            return;
+          }
 
-        for (const item of listData) {
-          let dataDecode = await handleDecodeData(item.content);
+          for (const item of listData) {
+            let dataDecode = await handleDecodeData(item.content);
 
-          if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
-            const danhsachmucin =
-              dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
-            const maSoPhieu = item._id;
+            if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
+              const danhsachmucin =
+                dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
+              const maSoPhieu = item._id;
 
-            const timThayMuc = danhsachmucin?.find(
-              (mucin) => mucin.qrcode === qrcodeScan
-            );
-
-            let timestamp = Date.now();
-
-            let date = new Date(timestamp);
-
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
-
-            let hours = date.getHours();
-            let minutes = date.getMinutes();
-            let seconds = date.getSeconds();
-
-            let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-
-            if (timThayMuc) {
-              const inkIndex = danhsachmucin?.findIndex(
-                (mucin) => mucin.qrcode === qrcodeScan
+              const timThayMuc = danhsachmucin?.find(
+                (mucin) => mucin.qrcode === dataInkDecode
               );
-              // Cập nhật thuộc tính hoàn trả cho mực
-              danhsachmucin[inkIndex] = {
-                ...danhsachmucin[inkIndex],
-                hoantra: 1,
-                thoigianhoantra: currentTime,
-              };
 
-              const mucInVaMaSoPhieu = {
-                ...timThayMuc,
-                masophieuxuat: maSoPhieu,
-              };
+              let timestamp = Date.now();
 
-              soLuongPhieuChuaMuc++;
+              let date = new Date(timestamp);
 
-              // Kiểm tra nếu mực đã hoàn trả và chỉ có trong 1 phiếu
-              if (timThayMuc.hoantra === 1 && soLuongPhieuChuaMuc === 1) {
-                api["error"]({
-                  message: "Thất bại",
-                  description: "Mực này đã được hoàn trả trước đó",
+              let day = date.getDate();
+              let month = date.getMonth() + 1;
+              let year = date.getFullYear();
+
+              let hours = date.getHours();
+              let minutes = date.getMinutes();
+              let seconds = date.getSeconds();
+
+              let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+
+              if (timThayMuc) {
+                const inkIndex = danhsachmucin?.findIndex(
+                  (mucin) => mucin.qrcode === dataInkDecode
+                );
+                // Cập nhật thuộc tính hoàn trả cho mực
+                danhsachmucin[inkIndex] = {
+                  ...danhsachmucin[inkIndex],
+                  hoantra: 1,
+                  thoigianhoantra: currentTime,
+                };
+
+                const mucInVaMaSoPhieu = {
+                  ...timThayMuc,
+                  masophieuxuat: maSoPhieu,
+                };
+
+                soLuongPhieuChuaMuc++;
+
+                // Kiểm tra nếu mực đã hoàn trả và chỉ có trong 1 phiếu
+                if (timThayMuc.hoantra === 1 && soLuongPhieuChuaMuc === 1) {
+                  api["error"]({
+                    message: "Thất bại",
+                    description: "Mực này đã được hoàn trả trước đó",
+                  });
+                  form.resetFields();
+                  return;
+                }
+
+                // Cập nhật lại nội dung phiếu
+                const updatedContent = {
+                  content: {
+                    danhsachphieu: {
+                      ...dataDecode.content.danhsachphieu,
+                      danhsachmucincuaphieu: danhsachmucin,
+                    },
+                  },
+                };
+
+                let jwtTokenContent = await handleEncodeHoanTra(updatedContent);
+
+                //Gọi API cập nhật phiếu
+                await axios.get(
+                  `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
+                );
+
+                setStatus("hoantra");
+
+                api["success"]({
+                  message: "Thành công",
+                  description: "Đã cập nhật thông tin hoàn trả mực",
                 });
                 form.resetFields();
                 return;
+              } else {
+                api["error"]({
+                  message: "Thất bại",
+                  description:
+                    "Không tìm thấy mực này trong danh sách phiếu xuất",
+                });
+                return;
               }
-
-              // Cập nhật lại nội dung phiếu
-              const updatedContent = {
-                content: {
-                  danhsachphieu: {
-                    ...dataDecode.content.danhsachphieu,
-                    danhsachmucincuaphieu: danhsachmucin,
-                  },
-                },
-              };
-
-              let jwtTokenContent = await handleEncodeHoanTra(updatedContent);
-
-              //Gọi API cập nhật phiếu
-              await axios.get(
-                `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
-              );
-
-              setStatus("hoantra");
-
-              api["success"]({
-                message: "Thành công",
-                description: "Đã cập nhật thông tin hoàn trả mực",
-              });
-              form.resetFields();
-              return;
-            } else {
-              api["error"]({
-                message: "Thất bại",
-                description:
-                  "Không tìm thấy mực này trong danh sách phiếu xuất",
-              });
-              return;
             }
           }
-        }
 
-        api["error"]({
-          message: "Thất bại",
-          description: "Không tìm thấy mực này trong danh sách phiếu xuất",
-        });
+          api["error"]({
+            message: "Thất bại",
+            description: "Không tìm thấy mực này trong danh sách phiếu xuất",
+          });
+        } catch (error) {
+          api["error"]({
+            message: "Lỗi",
+            description: "Đã xảy ra lỗi khi thu hồi vỏ mực",
+          });
+        }
       }
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi khi hoàn trả mực",
+        description: "Đã xảy ra lỗi khi thu hồi vỏ mực",
       });
     }
     form.resetFields();

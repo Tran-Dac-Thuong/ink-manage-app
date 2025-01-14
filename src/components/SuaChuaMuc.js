@@ -431,148 +431,167 @@ const SuaChuaMuc = (props) => {
         let mucDaXuat = false;
         let mucDangSuaChua = false;
 
-        // Kiểm tra xem mực đã được xuất chưa
-        for (const item of listData) {
-          let dataDecode = await handleDecodeData(item.content);
-          if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
-            const danhsachmucin =
-              dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
-            const timThayMuc = danhsachmucin?.find(
-              (mucin) => mucin.qrcode === qrcodeScan
-            );
-
-            if (timThayMuc && timThayMuc.suachua === "Đang sửa chữa") {
-              mucDangSuaChua = true;
-              break;
+        try {
+          let res = await axios.post(
+            `http://172.16.0.53:8080/parse_name_id`,
+            { name_id: qrcodeScan },
+            {
+              mode: "cors",
             }
-            if (danhsachmucin?.some((mucin) => mucin.qrcode === qrcodeScan)) {
-              mucDaXuat = true;
-              break;
+          );
+
+          let dataInkDecode = res.data.name + "_" + res.data.id;
+
+          // Kiểm tra xem mực đã được xuất chưa
+          for (const item of listData) {
+            let dataDecode = await handleDecodeData(item.content);
+            if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
+              const danhsachmucin =
+                dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
+              const timThayMuc = danhsachmucin?.find(
+                (mucin) => mucin.qrcode === dataInkDecode
+              );
+
+              if (timThayMuc && timThayMuc.suachua === "Đang sửa chữa") {
+                mucDangSuaChua = true;
+                break;
+              }
+              if (
+                danhsachmucin?.some((mucin) => mucin.qrcode === dataInkDecode)
+              ) {
+                mucDaXuat = true;
+                break;
+              }
             }
           }
-        }
 
-        // Nếu mực đang sửa chữa, hiển thị thông báo lỗi
-        if (mucDangSuaChua) {
-          api["error"]({
-            message: "Thất bại",
-            description: "Mực này đang trong quá trình sửa chữa",
-          });
-          form.resetFields();
-          return;
-        }
+          // Nếu mực đang sửa chữa, hiển thị thông báo lỗi
+          if (mucDangSuaChua) {
+            api["error"]({
+              message: "Thất bại",
+              description: "Mực này đang trong quá trình sửa chữa",
+            });
+            form.resetFields();
+            return;
+          }
 
-        // Nếu mực chưa được xuất, hiển thị thông báo lỗi
-        if (!mucDaXuat) {
-          api["error"]({
-            message: "Thất bại",
-            description:
-              "Mực này chưa được xuất khỏi kho nên không thể sửa chữa",
-          });
-          form.resetFields();
-          return;
-        }
+          // Nếu mực chưa được xuất, hiển thị thông báo lỗi
+          if (!mucDaXuat) {
+            api["error"]({
+              message: "Thất bại",
+              description:
+                "Mực này chưa được xuất khỏi kho nên không thể sửa chữa",
+            });
+            form.resetFields();
+            return;
+          }
 
-        for (const item of listData) {
-          let dataDecode = await handleDecodeData(item.content);
+          for (const item of listData) {
+            let dataDecode = await handleDecodeData(item.content);
 
-          if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
-            const danhsachmucin =
-              dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
-            const maSoPhieu = item._id;
+            if (dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất") {
+              const danhsachmucin =
+                dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
+              const maSoPhieu = item._id;
 
-            const timThayMuc = danhsachmucin?.find(
-              (mucin) => mucin.qrcode === qrcodeScan
-            );
-
-            let timestamp = Date.now();
-
-            let date = new Date(timestamp);
-
-            let day = date.getDate();
-            let month = date.getMonth() + 1;
-            let year = date.getFullYear();
-
-            let hours = date.getHours();
-            let minutes = date.getMinutes();
-            let seconds = date.getSeconds();
-
-            let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-
-            if (timThayMuc) {
-              const inkIndex = danhsachmucin?.findIndex(
-                (mucin) => mucin.qrcode === qrcodeScan
+              const timThayMuc = danhsachmucin?.find(
+                (mucin) => mucin.qrcode === dataInkDecode
               );
-              // Cập nhật thuộc tính hoàn trả cho mực
-              // danhsachmucin[inkIndex] = {
-              //   ...danhsachmucin[inkIndex],
-              //   suachua: "Đang sửa chữa",
-              //   noidungsuachua: values.noidung,
-              //   thoigianbatdausuachua: currentTime,
-              // };
 
-              const newInkItem = {
-                ...danhsachmucin[inkIndex],
-                suachua: "Đang sửa chữa",
-                noidungsuachua: values.noidung,
-                thoigianbatdausuachua: currentTime,
-              };
+              let timestamp = Date.now();
 
-              danhsachmucin[inkIndex] = newInkItem;
+              let date = new Date(timestamp);
 
-              const mucInVaMaSoPhieu = {
-                ...timThayMuc,
-                masophieuxuat: maSoPhieu,
-              };
+              let day = date.getDate();
+              let month = date.getMonth() + 1;
+              let year = date.getFullYear();
 
-              // Cập nhật lại nội dung phiếu
-              const updatedContent = {
-                content: {
-                  danhsachphieu: {
-                    ...dataDecode.content.danhsachphieu,
-                    danhsachmucincuaphieu: danhsachmucin,
+              let hours = date.getHours();
+              let minutes = date.getMinutes();
+              let seconds = date.getSeconds();
+
+              let currentTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+
+              if (timThayMuc) {
+                const inkIndex = danhsachmucin?.findIndex(
+                  (mucin) => mucin.qrcode === dataInkDecode
+                );
+                // Cập nhật thuộc tính hoàn trả cho mực
+                // danhsachmucin[inkIndex] = {
+                //   ...danhsachmucin[inkIndex],
+                //   suachua: "Đang sửa chữa",
+                //   noidungsuachua: values.noidung,
+                //   thoigianbatdausuachua: currentTime,
+                // };
+
+                const newInkItem = {
+                  ...danhsachmucin[inkIndex],
+                  suachua: "Đang sửa chữa",
+                  noidungsuachua: values.noidung,
+                  thoigianbatdausuachua: currentTime,
+                };
+
+                danhsachmucin[inkIndex] = newInkItem;
+
+                const mucInVaMaSoPhieu = {
+                  ...timThayMuc,
+                  masophieuxuat: maSoPhieu,
+                };
+
+                // Cập nhật lại nội dung phiếu
+                const updatedContent = {
+                  content: {
+                    danhsachphieu: {
+                      ...dataDecode.content.danhsachphieu,
+                      danhsachmucincuaphieu: danhsachmucin,
+                    },
                   },
-                },
-              };
+                };
 
-              let jwtTokenContent = await handleEncodeDangSuaChua(
-                updatedContent
-              );
+                let jwtTokenContent = await handleEncodeDangSuaChua(
+                  updatedContent
+                );
 
-              //Gọi API cập nhật phiếu
-              await axios.get(
-                `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
-              );
-              // Add new item at the beginning of the list
-              setFixingInks([newInkItem, ...fixingInks]);
-              setStatus("suachua");
+                //Gọi API cập nhật phiếu
+                await axios.get(
+                  `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
+                );
+                // Add new item at the beginning of the list
+                setFixingInks([newInkItem, ...fixingInks]);
+                setStatus("suachua");
 
-              api["success"]({
-                message: "Thành công",
-                description: "Đã cập nhật thông tin sửa chữa mực",
-              });
-              form.resetFields();
-              return;
-            } else {
-              api["error"]({
-                message: "Thất bại",
-                description:
-                  "Không tìm thấy mực này trong danh sách phiếu xuất",
-              });
-              return;
+                api["success"]({
+                  message: "Thành công",
+                  description: "Đã cập nhật thông tin sửa chữa mực",
+                });
+                form.resetFields();
+                return;
+              } else {
+                api["error"]({
+                  message: "Thất bại",
+                  description:
+                    "Không tìm thấy mực này trong danh sách phiếu xuất",
+                });
+                return;
+              }
             }
           }
-        }
 
-        api["error"]({
-          message: "Thất bại",
-          description: "Không tìm thấy mực này trong danh sách phiếu xuất",
-        });
+          api["error"]({
+            message: "Thất bại",
+            description: "Không tìm thấy mực này trong danh sách phiếu xuất",
+          });
+        } catch (error) {
+          api["error"]({
+            message: "Lỗi",
+            description: "Đã xảy ra lỗi khi thêm mực sửa chữa",
+          });
+        }
       }
     } catch (error) {
       api["error"]({
         message: "Lỗi",
-        description: "Đã xảy ra lỗi khi hoàn trả mực",
+        description: "Đã xảy ra lỗi khi thêm mực sửa chữa",
       });
     }
     form.resetFields();
