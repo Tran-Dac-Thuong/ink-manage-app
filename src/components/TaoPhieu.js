@@ -382,6 +382,7 @@ const CreatePhieu = (props) => {
           phieudachon === "Phiếu nhập"
             ? "Phiếu nhập " + Number(dataAfterFilter.length + 1)
             : "Phiếu xuất " + Number(dataAfterFilter.length + 1),
+
         ngaytaophieu: currentTime,
         nguoitaophieu: hovaten,
         khoaphongxuatmuc:
@@ -888,6 +889,16 @@ const CreatePhieu = (props) => {
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-success me-2">
               Trang chủ
+            </button>
+          </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
             </button>
           </Link>
           <Link to="/tonkho">

@@ -415,6 +415,16 @@ const TonKho = (props) => {
               Trang chủ
             </button>
           </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
+            </button>
+          </Link>
           <Link to="/danhsachmucindanhap">
             <button type="button" className="btn btn-success me-2">
               Đã nhập <span class="badge bg-danger">{dataDaNhap.length}</span>

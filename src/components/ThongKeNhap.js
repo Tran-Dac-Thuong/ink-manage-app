@@ -592,6 +592,7 @@ const ThongKeNhap = (props) => {
     enableHiding: false,
     enableDensityToggle: false,
     enableFullScreenToggle: false,
+    enableGlobalFilter: false,
   });
 
   return (
@@ -609,6 +610,16 @@ const ThongKeNhap = (props) => {
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-success me-2">
               Trang chủ
+            </button>
+          </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
             </button>
           </Link>
           <Link to="/tonkho">

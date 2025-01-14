@@ -17,6 +17,9 @@ import DanhSachMucInDaNhap from "./components/DanhSachMucInDaNhap";
 import DanhSachMucInDaXuat from "./components/DanhSachMucInDaXuat";
 import ThongKeNhap from "./components/ThongKeNhap";
 import ThongKeXuat from "./components/ThongKeXuat";
+import ChinhSuaPhieu from "./components/ChinhSuaPhieu";
+import HoanTraMuc from "./components/HoanTraMuc";
+import SuaChuaMuc from "./components/SuaChuaMuc";
 
 function App() {
   const [progress, setProgress] = useState(0);
@@ -86,6 +89,16 @@ function App() {
               path="/forbidden"
               element={<Forbidden setProgress={setProgress} />}
             ></Route>
+            <Route path="/chinhsuaphieu/:id" element={<ChinhSuaPhieu />} />
+            <Route
+              path="/hoantramuc"
+              element={<HoanTraMuc setProgress={setProgress} />}
+            />
+
+            <Route
+              path="/suachuamucin"
+              element={<SuaChuaMuc setProgress={setProgress} />}
+            />
           </Routes>
 
           <ToastContainer

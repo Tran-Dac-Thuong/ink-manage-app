@@ -414,6 +414,16 @@ const DanhSachMucInDaNhap = (props) => {
               Trang chủ
             </button>
           </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
+            </button>
+          </Link>
           <Link to="/tonkho">
             <button type="button" className="btn btn-warning me-2">
               Tồn kho <span class="badge bg-danger">{dataTonkho.length}</span>

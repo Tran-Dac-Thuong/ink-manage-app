@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "antd";
-import { Box, IconButton } from "@mui/material";
+import { Box } from "@mui/material";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
 
@@ -26,7 +26,6 @@ const InkManager = (props) => {
   const [dataSoLuongMucInDaNhap, setDataSoLuongMucInDaNhap] = useState([]);
   const [dataSoLuongMucInDaXuat, setDataSoLuongMucInDaXuat] = useState([]);
   const [dataSoLuongMucInTonKho, setDataSoLuongMucInTonKho] = useState([]);
-  const [validationErrors, setValidationErrors] = useState({});
 
   const [encodeWorkerDuyet] = useState(
     () => new Worker("encodeWorkerDuyet.js")
@@ -91,38 +90,6 @@ const InkManager = (props) => {
         console.log("Giải mã vai trò không thành công");
       }
     });
-  };
-
-  // const validateRequired = (value) => !!value.length;
-
-  // const validateInk = (ink) => {
-  //   return {
-  //     tenphieu: !validateRequired(ink.tenphieu)
-  //       ? "Tên phiếu không được để trống"
-  //       : "",
-  //     loaiphieu: !validateRequired(ink.loaiphieu)
-  //       ? "Loại phiếu không được để trống"
-  //       : "",
-  //     ngaytaophieu: !validateRequired(ink.ngaytaophieu)
-  //       ? "Ngày tạo phiếu không được để trống"
-  //       : "",
-  //     trangthai: !validateRequired(ink.trangthai)
-  //       ? "Trang thái không được để trống"
-  //       : "",
-  //     ngayduyetphieu: !validateRequired(ink.ngayduyetphieu)
-  //       ? "Ngày duyệt phiếu không được để trống"
-  //       : "",
-  //   };
-  // };
-
-  const validateInk = (ink) => {
-    return {
-      tenphieu: !ink.tenphieu ? "Tên phiếu là bắt buộc" : "",
-      loaiphieu: !ink.loaiphieu ? "Loại phiếu là bắt buộc" : "",
-      ngaytaophieu: !ink.ngaytaophieu ? "Ngày tạo phiếu là bắt buộc" : "",
-      trangthai: !ink.trangthai ? "Trạng thái là bắt buộc" : "",
-      ngayduyetphieu: !ink.ngayduyetphieu ? "Ngày duyệt phiếu là bắt buộc" : "",
-    };
   };
 
   useEffect(() => {
@@ -297,6 +264,24 @@ const InkManager = (props) => {
           };
         });
 
+        const timPhieuNhapNguon = (mucInXuat) => {
+          const phieuNhapNguon = {};
+
+          mucInXuat.forEach((mucIn) => {
+            const phieuNhapTuongUng = filteredArrPhieuNhap.find((phieu) =>
+              phieu.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.some(
+                (mucNhap) => mucNhap.qrcode === mucIn.qrcode
+              )
+            );
+
+            if (phieuNhapTuongUng) {
+              phieuNhapNguon[mucIn.qrcode] = phieuNhapTuongUng._id;
+            }
+          });
+
+          return phieuNhapNguon;
+        };
+
         const resultArrayPhieuXuat = filteredArrPhieuXuat.map((item, index) => {
           let ngaytaophieuTimestampXuat;
 
@@ -320,6 +305,37 @@ const InkManager = (props) => {
             ngaytaophieuTimestampXuat = Date.now();
           }
 
+          // // Find corresponding phiếu nhập
+          // const phieuNhap = filteredArrPhieuNhap.find((phieu) =>
+          //   phieu.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.some(
+          //     (mucIn) =>
+          //       item.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.some(
+          //         (mucXuat) => mucXuat.qrcode === mucIn.qrcode
+          //       )
+          //   )
+          // );
+
+          // // Map danhsachmucincuaphieu with masophieunhap
+          // const danhsachmucincuaphieu =
+          //   item.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.map(
+          //     (mucIn) => ({
+          //       ...mucIn,
+          //       masophieunhap: phieuNhap?._id || "",
+          //     })
+          //   );
+
+          const phieuNhapNguon = timPhieuNhapNguon(
+            item.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu
+          );
+
+          const danhsachmucincuaphieu =
+            item.decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.map(
+              (mucIn) => ({
+                ...mucIn,
+                masophieunhap: phieuNhapNguon[mucIn.qrcode] || "",
+              })
+            );
+
           return {
             stt: index + 1,
             masophieu: item._id,
@@ -334,9 +350,10 @@ const InkManager = (props) => {
             trangthai: item.decodedContent?.content?.danhsachphieu?.trangthai,
             khoaphongxuatmuc:
               item.decodedContent?.content?.danhsachphieu?.khoaphongxuatmuc,
-            danhsachmucincuaphieu:
-              item.decodedContent?.content?.danhsachphieu
-                ?.danhsachmucincuaphieu,
+            // danhsachmucincuaphieu:
+            //   item.decodedContent?.content?.danhsachphieu
+            //     ?.danhsachmucincuaphieu,
+            danhsachmucincuaphieu: danhsachmucincuaphieu,
             ngaytaophieuTimestamp: ngaytaophieuTimestampXuat,
           };
         });
@@ -489,26 +506,13 @@ const InkManager = (props) => {
       {
         accessorKey: "stt",
         header: "STT",
-        // enableEditing: false,
+
         size: 100,
       },
       {
         accessorKey: "tenphieu",
         header: "Tên phiếu",
         size: 100,
-        // muiEditTextFieldProps: {
-        //   required: true,
-        //   error: !!validationErrors?.tenphieu,
-        //   helperText: validationErrors?.tenphieu,
-
-        //   //remove any previous validation errors when user focuses on the input
-        //   onFocus: () =>
-        //     setValidationErrors({
-        //       ...validationErrors,
-        //       tenphieu: undefined,
-        //     }),
-        //   //optionally add validation checking for onBlur or onChange
-        // },
       },
       {
         accessorKey: "masophieu",
@@ -521,18 +525,7 @@ const InkManager = (props) => {
         accessorKey: "loaiphieu",
         header: "Loại phiếu",
         size: 100,
-        // muiEditTextFieldProps: {
-        //   required: true,
-        //   error: !!validationErrors?.loaiphieu,
-        //   helperText: validationErrors?.loaiphieu,
-        //   //remove any previous validation errors when user focuses on the input
-        //   onFocus: () =>
-        //     setValidationErrors({
-        //       ...validationErrors,
-        //       loaiphieu: undefined,
-        //     }),
-        //   //optionally add validation checking for onBlur or onChange
-        // },
+
         Cell: ({ cell }) => (
           <Box
             component="span"
@@ -555,35 +548,12 @@ const InkManager = (props) => {
         accessorKey: "ngaytaophieu",
         header: "Ngày tạo phiếu",
         size: 100,
-        // muiEditTextFieldProps: {
-        //   required: true,
-        //   error: !!validationErrors?.ngaytaophieu,
-        //   helperText: validationErrors?.ngaytaophieu,
-        //   //remove any previous validation errors when user focuses on the input
-        //   onFocus: () =>
-        //     setValidationErrors({
-        //       ...validationErrors,
-        //       ngaytaophieu: undefined,
-        //     }),
-        //   //optionally add validation checking for onBlur or onChange
-        // },
       },
       {
         accessorKey: "trangthai",
         header: "Trạng thái",
         size: 100,
-        // muiEditTextFieldProps: {
-        //   required: true,
-        //   error: !!validationErrors?.trangthai,
-        //   helperText: validationErrors?.trangthai,
-        //   //remove any previous validation errors when user focuses on the input
-        //   onFocus: () =>
-        //     setValidationErrors({
-        //       ...validationErrors,
-        //       trangthai: undefined,
-        //     }),
-        //   //optionally add validation checking for onBlur or onChange
-        // },
+
         Cell: ({ cell }) => (
           <Box
             component="span"
@@ -608,18 +578,6 @@ const InkManager = (props) => {
         accessorKey: "ngayduyetphieu",
         header: "Ngày duyệt phiếu",
         size: 100,
-        // muiEditTextFieldProps: {
-        //   required: true,
-        //   error: !!validationErrors?.ngayduyetphieu,
-        //   helperText: validationErrors?.ngayduyetphieu,
-        //   //remove any previous validation errors when user focuses on the input
-        //   onFocus: () =>
-        //     setValidationErrors({
-        //       ...validationErrors,
-        //       ngayduyetphieu: undefined,
-        //     }),
-        //   //optionally add validation checking for onBlur or onChange
-        // },
       },
     ],
     []
@@ -874,22 +832,9 @@ const InkManager = (props) => {
     }
   };
 
-  const handleSaveUser = async ({ values, table }) => {
-    const newValidationErrors = validateInk(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-
-      return;
-    }
-    setValidationErrors({});
-
-    table.setEditingRow(null);
-  };
-
   const tablePhieuNhap = useMaterialReactTable({
     columns: columnsPhieuNhap,
     data: dataPhieuNhap,
-    // editDisplayMode: "row",
     enableEditing: true,
     enableHiding: false,
     enableDensityToggle: false,
@@ -930,14 +875,6 @@ const InkManager = (props) => {
       row.original.loaiphieu === "Phiếu nhập" &&
       row.original.trangthai === "Đã duyệt" ? (
         <>
-          {/* <Button
-            onClick={() => table.setEditingRow(row)}
-            type="primary"
-            danger
-            htmlType="submit"
-          >
-            Chỉnh sửa
-          </Button> */}
           {role === "Người duyệt" ? (
             <Box sx={{ display: "flex", gap: "1rem" }}>
               {!coMucInDaXuat(row.original.danhsachmucincuaphieu) ? (
@@ -1008,14 +945,6 @@ const InkManager = (props) => {
         </>
       ) : (
         <>
-          {/* <Button
-            onClick={() => table.setEditingRow(row)}
-            type="primary"
-            danger
-            htmlType="submit"
-          >
-            Chỉnh sửa
-          </Button> */}
           {role === "Người duyệt" ? (
             row.original.danhsachmucincuaphieu.length > 0 ? (
               <Box sx={{ display: "flex", gap: "1rem" }}>
@@ -1152,6 +1081,23 @@ const InkManager = (props) => {
           </>
         ) : (
           <>
+            {/* {tendangnhap === "Trần Đắc Thương" ? (
+              <>
+                <Link
+                  to={`/chinhsuaphieu/${row.original.masophieu}`}
+                  state={{
+                    phieuData: row.original,
+                    dataMucInCuaPhieu: row.original.danhsachmucincuaphieu,
+                  }}
+                >
+                  <Button type="primary" danger htmlType="submit">
+                    Chỉnh sửa
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <></>
+            )} */}
             <Link
               to={`/xemphieu/${row.original.masophieu}/${row.original.loaiphieu}/${row.original.ngaytaophieu}/${row.original.nguoitaophieu}/none/none/${row.original.thoigianxuat}/${row.original.tenphieu}`}
               state={{
@@ -1194,6 +1140,16 @@ const InkManager = (props) => {
           <Link to="/taophieu">
             <button type="button" className="btn btn-info me-2">
               Tạo phiếu
+            </button>
+          </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
             </button>
           </Link>
 

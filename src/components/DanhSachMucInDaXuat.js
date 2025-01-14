@@ -357,6 +357,11 @@ const DanhSachMucInDaXuat = (props) => {
         size: 150,
       },
       {
+        accessorKey: "tenphieu",
+        header: "Tên phiếu xuất",
+        size: 150,
+      },
+      {
         accessorKey: "khoaphongxuatmuc",
         header: "Tên khoa phòng",
         size: 150,
@@ -435,6 +440,16 @@ const DanhSachMucInDaXuat = (props) => {
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-info me-2">
               Trang chủ
+            </button>
+          </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
             </button>
           </Link>
           <Link to="/tonkho">

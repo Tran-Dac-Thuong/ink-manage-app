@@ -265,6 +265,14 @@ const NhapMuc = (props) => {
             let danhsachmucinnhapkho =
               decodedAllData[i].decodedContent?.content?.danhsachphieu
                 ?.danhsachmucincuaphieu;
+            // let danhsachmucinnhapkho = decodedAllData[
+            //   i
+            // ].decodedContent?.content?.danhsachphieu?.danhsachmucincuaphieu.map(
+            //   (item) => ({
+            //     ...item,
+            //     masophieu: decodedAllData[i]._id, // Thêm mã số phiếu vào từng mực in
+            //   })
+            // );
             nhapArr = [...nhapArr, ...danhsachmucinnhapkho];
           }
         }
@@ -484,6 +492,7 @@ const NhapMuc = (props) => {
         form.setFieldsValue({
           qrcode: value,
         });
+
         handleThemMucInCay({ qrcode: value });
         setScanBuffer("");
       }
@@ -583,6 +592,11 @@ const NhapMuc = (props) => {
           }
         );
 
+        // // Tìm thông tin phiếu nhập của mực này
+        // const inkInStock = dataDaNhap.find(
+        //   (ink) => ink.qrcode === dataInkDecode
+        // );
+
         if (res && res.status === 200) {
           let insertMucIn = {
             tenmuc: res.data.name,
@@ -591,6 +605,7 @@ const NhapMuc = (props) => {
             qrcode: dataInkDecode,
             loaiphieu: dataPhieu?.loaiphieu,
             tenphieu: dataPhieu?.tenphieu,
+            // masophieunhap: inkInStock?.masophieu || "", // Thêm số phiếu nhập
             thoigiannhapmucin: currentTime,
             nguoinhapmucin: tendangnhap,
             ngay: ngay,
@@ -1003,6 +1018,16 @@ const NhapMuc = (props) => {
           <Link to="/danhsachphieu">
             <button type="button" className="btn btn-success me-2">
               Trang chủ
+            </button>
+          </Link>
+          <Link to="/hoantramuc">
+            <button type="button" className="btn btn-dark me-2">
+              Thu hồi vỏ mực
+            </button>
+          </Link>
+          <Link to="/suachuamucin">
+            <button type="button" className="btn btn-primary me-2">
+              Sửa chữa mực
             </button>
           </Link>
           <Link to="/tonkho">
