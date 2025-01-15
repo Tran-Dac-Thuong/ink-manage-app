@@ -427,6 +427,7 @@ const SuaChuaMuc = (props) => {
       let res = await axios.get(`http://172.16.0.53:8080/danh_sach`);
       if (res && res.data) {
         const listData = res.data;
+        console.log(listData);
 
         let mucDaXuat = false;
         let mucDangSuaChua = false;
@@ -480,7 +481,7 @@ const SuaChuaMuc = (props) => {
             api["error"]({
               message: "Thất bại",
               description:
-                "Mực này chưa được xuất khỏi kho nên không thể sửa chữa",
+                "Mực này không có trong danh sách xuất để có thể sửa chữa",
             });
             form.resetFields();
             return;
@@ -552,26 +553,19 @@ const SuaChuaMuc = (props) => {
                   updatedContent
                 );
 
-                //Gọi API cập nhật phiếu
-                await axios.get(
-                  `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
-                );
-                // Add new item at the beginning of the list
-                setFixingInks([newInkItem, ...fixingInks]);
-                setStatus("suachua");
+                // //Gọi API cập nhật phiếu
+                // await axios.get(
+                //   `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
+                // );
+                // // Add new item at the beginning of the list
+                // setFixingInks([newInkItem, ...fixingInks]);
+                // setStatus("suachua");
 
                 api["success"]({
                   message: "Thành công",
                   description: "Mực in đã được thêm vào danh sách sửa chữa",
                 });
                 form.resetFields();
-                return;
-              } else {
-                api["error"]({
-                  message: "Thất bại",
-                  description:
-                    "Không tìm thấy mực này trong danh sách phiếu xuất",
-                });
                 return;
               }
             }
