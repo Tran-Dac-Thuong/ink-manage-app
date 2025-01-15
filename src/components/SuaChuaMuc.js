@@ -553,13 +553,13 @@ const SuaChuaMuc = (props) => {
                   updatedContent
                 );
 
-                // //Gọi API cập nhật phiếu
-                // await axios.get(
-                //   `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
-                // );
-                // // Add new item at the beginning of the list
-                // setFixingInks([newInkItem, ...fixingInks]);
-                // setStatus("suachua");
+                //Gọi API cập nhật phiếu
+                await axios.get(
+                  `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
+                );
+                // Add new item at the beginning of the list
+                setFixingInks([newInkItem, ...fixingInks]);
+                setStatus("suachua");
 
                 api["success"]({
                   message: "Thành công",
