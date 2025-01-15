@@ -568,7 +568,7 @@ const NhapMuc = (props) => {
       if (!existsInkTonKho && dataPhieu?.loaiphieu === "Phiếu xuất") {
         api["error"]({
           message: "Thất bại",
-          description: "Mực in này không có trong kho để xuất",
+          description: "Mã mực đã nhập không khớp với mã trong tồn kho",
         });
         form.resetFields();
         return;
