@@ -62,8 +62,6 @@ const SuaChuaMuc = (props) => {
 
   const [form] = Form.useForm();
 
-  const [fixingInks, setFixingInks] = useState([]);
-
   const [loadingMucIn, setLoadingMucIn] = useState(true);
 
   const [showDangSuaChua, setShowDangSuaChua] = useState(true);
@@ -294,18 +292,45 @@ const SuaChuaMuc = (props) => {
           }
         }
 
-        fixingInksArr.sort((a, b) => {
-          const timeA = new Date(
-            a.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
-          );
-          const timeB = new Date(
-            b.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
-          );
-          return timeB - timeA;
+        const resultSuachuaArr = fixingInksArr.map((item, index) => {
+          let thoigiansuachuaTimestampNhap;
+
+          if (item.thoigianbatdausuachua) {
+            const [day, month, year, time] =
+              item.thoigianbatdausuachua.split(/[-\s]/);
+            const [hours, minutes, seconds] = time.split(":");
+            thoigiansuachuaTimestampNhap = new Date(
+              year,
+              month - 1,
+              day,
+              hours,
+              minutes,
+              seconds
+            ).getTime();
+          }
+
+          if (isNaN(thoigiansuachuaTimestampNhap)) {
+            thoigiansuachuaTimestampNhap = Date.now();
+          }
+
+          return {
+            tenmuc: item.tenmuc,
+            mamuc: item.mamuc,
+            qrcode: item.qrcode,
+
+            noidungsuachua: item.noidungsuachua,
+            thoigianbatdausuachua: item.thoigianbatdausuachua,
+            thoigianketthucsuachua: item.thoigianketthucsuachua,
+            suachua: item.suachua,
+            thoigiansuachuaTimestamp: thoigiansuachuaTimestampNhap,
+          };
         });
 
-        setOriginalFixingInks(fixingInksArr);
-        setFixingInks(fixingInksArr);
+        resultSuachuaArr.sort(
+          (a, b) => b.thoigiansuachuaTimestamp - a.thoigiansuachuaTimestamp
+        );
+
+        setOriginalFixingInks(resultSuachuaArr);
         setDataDaNhap(nhapArr);
         setDataDaXuat(xuatArr);
         setDataTonKho(tonkhoArr);
@@ -557,8 +582,7 @@ const SuaChuaMuc = (props) => {
                 await axios.get(
                   `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
                 );
-                // Add new item at the beginning of the list
-                setFixingInks([newInkItem, ...fixingInks]);
+
                 setStatus("suachua");
 
                 api["success"]({

@@ -207,7 +207,7 @@ const HoanTraMuc = (props) => {
           }
         }
 
-        const resultInksArr = returnedInksArr.map((item, index) => {
+        const resultHoantraArr = returnedInksArr.map((item, index) => {
           let thoigianhoantraTimestampNhap;
 
           if (item.thoigianhoantra) {
@@ -229,7 +229,6 @@ const HoanTraMuc = (props) => {
           }
 
           return {
-            stt: index + 1,
             tenmuc: item.tenmuc,
             mamuc: item.mamuc,
             qrcode: item.qrcode,
@@ -241,11 +240,11 @@ const HoanTraMuc = (props) => {
           };
         });
 
-        resultInksArr.sort(
+        resultHoantraArr.sort(
           (a, b) => b.thoigianhoantraTimestamp - a.thoigianhoantraTimestamp
         );
 
-        setReturnedInks(resultInksArr);
+        setReturnedInks(resultHoantraArr);
         setDataDaNhap(nhapArr);
         setDataDaXuat(xuatArr);
         setDataTonKho(tonkhoArr);
