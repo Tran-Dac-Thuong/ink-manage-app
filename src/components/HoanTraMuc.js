@@ -207,15 +207,15 @@ const HoanTraMuc = (props) => {
           }
         }
 
-        // returnedInksArr.sort((a, b) => {
-        //   const timeA = new Date(
-        //     a.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
-        //   );
-        //   const timeB = new Date(
-        //     b.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
-        //   );
-        //   return timeB - timeA;
-        // });
+        returnedInksArr.sort((a, b) => {
+          const timeA = new Date(
+            a.thoigianhoantra.split(" ")[0].split("-").reverse().join("-")
+          );
+          const timeB = new Date(
+            b.thoigianhoantra.split(" ")[0].split("-").reverse().join("-")
+          );
+          return timeA - timeB;
+        });
 
         setReturnedInks(returnedInksArr);
         setDataDaNhap(nhapArr);
