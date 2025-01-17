@@ -207,17 +207,45 @@ const HoanTraMuc = (props) => {
           }
         }
 
-        returnedInksArr.sort((a, b) => {
-          const timeA = new Date(
-            a.thoigianhoantra.split(" ")[0].split("-").reverse().join("-")
-          );
-          const timeB = new Date(
-            b.thoigianhoantra.split(" ")[0].split("-").reverse().join("-")
-          );
-          return timeA - timeB;
+        const resultInksArr = returnedInksArr.map((item, index) => {
+          let thoigianhoantraTimestampNhap;
+
+          if (item.thoigianhoantra) {
+            const [day, month, year, time] =
+              item.thoigianhoantra.split(/[-\s]/);
+            const [hours, minutes, seconds] = time.split(":");
+            thoigianhoantraTimestampNhap = new Date(
+              year,
+              month - 1,
+              day,
+              hours,
+              minutes,
+              seconds
+            ).getTime();
+          }
+
+          if (isNaN(thoigianhoantraTimestampNhap)) {
+            thoigianhoantraTimestampNhap = Date.now();
+          }
+
+          return {
+            stt: index + 1,
+            tenmuc: item.tenmuc,
+            mamuc: item.mamuc,
+            qrcode: item.qrcode,
+            tenphieu: item.tenphieu,
+
+            thoigianhoantra: item.thoigianhoantra,
+            hoantra: item.hoantra,
+            thoigianhoantraTimestamp: thoigianhoantraTimestampNhap,
+          };
         });
 
-        setReturnedInks(returnedInksArr);
+        resultInksArr.sort(
+          (a, b) => b.thoigianhoantraTimestamp - a.thoigianhoantraTimestamp
+        );
+
+        setReturnedInks(resultInksArr);
         setDataDaNhap(nhapArr);
         setDataDaXuat(xuatArr);
         setDataTonKho(tonkhoArr);
