@@ -413,13 +413,6 @@ const HoanTraMuc = (props) => {
                 });
                 form.resetFields();
                 return;
-              } else {
-                api["error"]({
-                  message: "Thất bại",
-                  description:
-                    "Không tìm thấy mực này trong danh sách phiếu xuất",
-                });
-                return;
               }
             }
           }
