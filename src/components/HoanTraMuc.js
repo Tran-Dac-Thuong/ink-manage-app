@@ -207,6 +207,16 @@ const HoanTraMuc = (props) => {
           }
         }
 
+        returnedInksArr.sort((a, b) => {
+          const timeA = new Date(
+            a.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
+          );
+          const timeB = new Date(
+            b.thoigianbatdausuachua.split(" ")[0].split("-").reverse().join("-")
+          );
+          return timeB - timeA;
+        });
+
         setReturnedInks(returnedInksArr);
         setDataDaNhap(nhapArr);
         setDataDaXuat(xuatArr);
@@ -699,43 +709,45 @@ const HoanTraMuc = (props) => {
     paginationDisplayMode: "pages",
     renderRowActions: ({ row, table }) => (
       <>
-        <Button
-          title="Xem chi tiết"
-          type="primary"
-          onClick={() => showModal(row)}
-        >
-          <VisibilityIcon />
-        </Button>
-        <ConfigProvider
-          theme={{
-            components: {
-              Button: {
-                colorPrimary: "#ff4d4f",
-
-                algorithm: true,
-              },
-            },
-          }}
-        >
-          <Popconfirm
-            title="Hủy thu hồi"
-            description="Bạn có chắc chắn muốn hủy thu hồi mực này không?"
-            onConfirm={() => handleXoaMucHoanTra(row)}
-            cancelText="Không"
-            okText="Có"
-            icon={
-              <QuestionCircleOutlined
-                style={{
-                  color: "red",
-                }}
-              />
-            }
+        <Box sx={{ display: "flex", gap: "0.5rem" }}>
+          <Button
+            title="Xem chi tiết"
+            type="primary"
+            onClick={() => showModal(row)}
           >
-            <Button title="Hủy thu hồi" type="primary" danger>
-              <CloseIcon />
-            </Button>
-          </Popconfirm>
-        </ConfigProvider>
+            <VisibilityIcon />
+          </Button>
+          <ConfigProvider
+            theme={{
+              components: {
+                Button: {
+                  colorPrimary: "#ff4d4f",
+
+                  algorithm: true,
+                },
+              },
+            }}
+          >
+            <Popconfirm
+              title="Hủy thu hồi"
+              description="Bạn có chắc chắn muốn hủy thu hồi mực này không?"
+              onConfirm={() => handleXoaMucHoanTra(row)}
+              cancelText="Không"
+              okText="Có"
+              icon={
+                <QuestionCircleOutlined
+                  style={{
+                    color: "red",
+                  }}
+                />
+              }
+            >
+              <Button title="Hủy thu hồi" type="primary" danger>
+                <CloseIcon />
+              </Button>
+            </Popconfirm>
+          </ConfigProvider>
+        </Box>
       </>
     ),
     positionActionsColumn: "last",
