@@ -378,6 +378,15 @@ const CreatePhieu = (props) => {
       (item) => item?.loaiphieu === phieudachon
     );
 
+    // Get highest tenphieu number
+    let maxNumber = 0;
+    dataAfterFilter.forEach((item) => {
+      const number = parseInt(item.tenphieu.split(" ").pop());
+      if (number > maxNumber) {
+        maxNumber = number;
+      }
+    });
+
     let timestamp = Date.now();
 
     let date = new Date(timestamp);
@@ -397,8 +406,8 @@ const CreatePhieu = (props) => {
         loaiphieu: phieudachon,
         tenphieu:
           phieudachon === "Phiếu nhập"
-            ? "Phiếu nhập " + Number(dataAfterFilter.length + 1)
-            : "Phiếu xuất " + Number(dataAfterFilter.length + 1),
+            ? "Phiếu nhập " + Number(maxNumber + 1)
+            : "Phiếu xuất " + Number(maxNumber + 1),
 
         ngaytaophieu: currentTime,
         nguoitaophieu: hovaten,
@@ -441,110 +450,13 @@ const CreatePhieu = (props) => {
     }
   };
 
-  // const handleXoaPhieu = async (phieu) => {
-  //   try {
-  //     await axios.get(
-  //       `http://172.16.0.53:8080/delete/${phieu.original?.sophieu}`
-  //     );
-  //     api["success"]({
-  //       message: "Thành công",
-  //       description: "Xóa phiếu thành công.",
-  //     });
-  //     setStatus("Delete");
-  //     setTimeout(() => {
-  //       setStatus("");
-  //     }, 500);
-  //   } catch (error) {
-  //     api["error"]({
-  //       message: "Thất bại",
-  //       description: "Đã xảy ra lỗi trong quá trình xóa phiếu",
-  //     });
-  //   }
-  // };
-
   const handleXoaPhieu = async (phieu) => {
     try {
-      if (phieu.original.loaiphieu === "Phiếu nhập") {
-        // Xóa phiếu hiện tại
-        // await axios.get(
-        //   `http://172.16.0.53:8080/delete/${phieu.original?.sophieu}`
-        // );
+      // Xóa phiếu hiện tại
+      await axios.get(
+        `http://172.16.0.53:8080/delete/${phieu.original?.sophieu}`
+      );
 
-        const phieuNhapList = data.filter(
-          (item) =>
-            item.loaiphieu === "Phiếu nhập" &&
-            parseInt(item.tenphieu.split(" ")[2]) >
-              parseInt(phieu.original.tenphieu.split(" ")[2])
-        );
-
-        // console.log(phieuNhapList);
-
-        if (phieuNhapList.length > 0) {
-          // Cập nhật tenphieu cho tất cả phiếu nhập tiếp theo
-          for (const laterPhieu of phieuNhapList) {
-            const soHienTai = parseInt(laterPhieu.tenphieu.split(" ")[2]);
-            const tenPhieuMoi = `Phiếu nhập ${soHienTai - 1}`;
-
-            const duLieuCapNhat = {
-              content: {
-                ...laterPhieu,
-                tenphieu: tenPhieuMoi,
-              },
-            };
-
-            console.log(duLieuCapNhat);
-
-            // let jwtToken = await handleEncodeXoaPhieu(duLieuCapNhat);
-
-            // await axios.get(
-            //   `http://172.16.0.53:8080/update/${laterPhieu.sophieu}/${jwtToken}`
-            // );
-          }
-        }
-      } else {
-        // Xóa phiếu hiện tại
-        await axios.get(
-          `http://172.16.0.53:8080/delete/${phieu.original?.sophieu}`
-        );
-
-        // Lấy danh sách các phiếu nhập có số lớn hơn
-        const phieuXuatList = data.filter(
-          (item) =>
-            item.loaiphieu === "Phiếu xuất" &&
-            parseInt(item.tenphieu.split(" ")[2]) >
-              parseInt(phieu.original.tenphieu.split(" ")[2])
-        );
-
-        if (phieuXuatList.length > 0) {
-          // Cập nhật tenphieu cho tất cả phiếu nhập tiếp theo
-          for (const laterPhieu of phieuXuatList) {
-            const soHienTai = parseInt(laterPhieu.tenphieu.split(" ")[2]);
-            const tenPhieuMoi = `Phiếu xuất ${soHienTai - 1}`;
-
-            const duLieuCapNhatPhieuXuat = {
-              content: {
-                danhsachphieu: {
-                  // Loại bỏ ngaytaophieuTimestamp và stt bằng destructuring
-                  ...(() => {
-                    const { ngaytaophieuTimestamp, stt, ...rest } = laterPhieu;
-                    return rest;
-                  })(),
-                  tenphieu: tenPhieuMoi,
-                },
-                danhsachtonkho: {},
-              },
-            };
-
-            // console.log(duLieuCapNhatPhieuXuat);
-
-            let jwtToken = await handleEncodeXoaPhieu(duLieuCapNhatPhieuXuat);
-
-            await axios.get(
-              `http://172.16.0.53:8080/update/${laterPhieu.sophieu}/${jwtToken}`
-            );
-          }
-        }
-      }
       api["success"]({
         message: "Thành công",
         description: "Xóa phiếu thành công.",
