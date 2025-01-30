@@ -1,5 +1,13 @@
 import { QuestionCircleOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Form, Input, notification, Popconfirm, Select } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Popconfirm,
+  Select,
+} from "antd";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -19,6 +27,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import fontPath from "../fonts/Roboto-Black.ttf";
 import Dropdown from "react-bootstrap/Dropdown";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 const NhapMuc = (props) => {
   const [status, setStatus] = useState("");
@@ -45,6 +54,10 @@ const NhapMuc = (props) => {
 
   const [scanBuffer, setScanBuffer] = useState("");
   const [scanTimeout, setScanTimeout] = useState(null);
+
+  const [importLoading, setImportLoading] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [role, setRole] = useState("");
 
@@ -767,9 +780,7 @@ const NhapMuc = (props) => {
         description: `Xóa ${selectedRows.length} mực in trong phiếu thành công`,
       });
       setStatus(randomString());
-      setTimeout(() => {
-        setStatus("");
-      }, 500);
+
       setRowSelection({});
     } catch (error) {
       api["error"]({
@@ -861,6 +872,169 @@ const NhapMuc = (props) => {
     navigate("/dangnhap");
   };
 
+  const handleFileUpload = async (event) => {
+    setImportLoading(true);
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    let InkArray = [...data] ? [...data] : [];
+
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+        for (const row of jsonData) {
+          const qrcode = row["SỐ SERI"];
+
+          // // Check if ink already exists
+          // const existsInk = InkArray.find((item) => item.qrcode === qrcode);
+          // if (existsInk) {
+          //   api["error"]({
+          //     message: "Thất bại",
+          //     description: "Mực in này đã được thêm trong phiếu này",
+          //   });
+          //   continue;
+          // }
+
+          // // Check with inventory if export receipt
+          // if (dataPhieu?.loaiphieu === "Phiếu xuất") {
+          //   const existsInkTonKho = dataTonKho.find(
+          //     (item) => item.qrcode === qrcode
+          //   );
+          //   if (!existsInkTonKho) {
+          //     api["error"]({
+          //       message: "Thất bại",
+          //       description: "Mã mực không khớp với mã trong tồn kho",
+          //     });
+          //     continue;
+          //   }
+          // }
+
+          // // Check if ink exists in inventory for import receipt
+          // if (dataPhieu?.loaiphieu === "Phiếu nhập") {
+          //   const existsInkTonKho = dataTonKho.find(
+          //     (item) => item.qrcode === qrcode
+          //   );
+          //   if (existsInkTonKho) {
+          //     api["error"]({
+          //       message: "Thất bại",
+          //       description: "Mực in này đã có trong kho",
+          //     });
+          //     continue;
+          //   }
+          // }
+
+          // Parse ink name and id
+          const res = await axios.post(
+            `http://172.16.0.53:8080/parse_name_id`,
+            { name_id: qrcode },
+            { mode: "cors" }
+          );
+
+          if (res && res.status === 200) {
+            const timestamp = Date.now();
+            const date = new Date(timestamp);
+            const currentTime = `${date.getDate()}-${
+              date.getMonth() + 1
+            }-${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+            const insertMucIn = {
+              tenmuc: res.data.name,
+              mamuc: res.data.id,
+              soluong: 1,
+              qrcode: qrcode,
+              loaiphieu: dataPhieu?.loaiphieu,
+              tenphieu: dataPhieu?.tenphieu,
+              thoigiannhapmucin: currentTime,
+              nguoinhapmucin: tendangnhap,
+              ngay: date.getDate(),
+              thang: date.getMonth() + 1,
+              nam: date.getFullYear(),
+              gio: date.getHours(),
+              phut: date.getMinutes(),
+              giay: date.getSeconds(),
+              inkId: generateRandomEightDigitNumber(),
+            };
+
+            InkArray.push(insertMucIn);
+          }
+        }
+
+        // Update receipt with new inks
+        const newTaoPhieuData = {
+          danhsachphieu: {
+            loaiphieu: dataPhieu?.loaiphieu,
+            tenphieu: dataPhieu?.tenphieu,
+            ngaytaophieu: dataPhieu?.ngaytaophieu,
+            nguoitaophieu: dataPhieu?.nguoitaophieu,
+            khoaphongxuatmuc:
+              dataPhieu?.loaiphieu === "Phiếu nhập" ? "" : dataPhieu?.khoaphong,
+            trangthai:
+              dataPhieu?.loaiphieu === "Phiếu nhập"
+                ? "Chưa duyệt"
+                : "Chưa xuất",
+            ngayduyetphieu: "",
+            danhsachmucincuaphieu: InkArray,
+          },
+          danhsachtonkho: {},
+        };
+
+        const DataPhieuValues = {
+          content: newTaoPhieuData,
+        };
+
+        const jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
+
+        await axios.get(
+          `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+          { mode: "cors" }
+        );
+
+        api["success"]({
+          message: "Thành công",
+          description: "Nhập mực in vào phiếu thành công",
+        });
+
+        setStatus(randomString());
+      } catch (error) {
+        api["error"]({
+          message: "Thất bại",
+          description: "Đã xảy ra lỗi trong quá trình nhập mực in",
+        });
+      } finally {
+        setImportLoading(false);
+      }
+
+      event.target.value = "";
+    };
+
+    if (file) {
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
+  // Hàm tính toán số lượng theo tên mực
+  const calculateInkQuantities = (inkList) => {
+    const quantities = {};
+    inkList.forEach((ink) => {
+      quantities[ink.tenmuc] = (quantities[ink.tenmuc] || 0) + 1;
+    });
+    return quantities;
+  };
+
+  // Thêm hàm xử lý hiển thị modal
+  const showConfirmModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Hàm xử lý khi bấm nút xuất trong modal
+  const handleConfirmExport = () => {
+    setIsModalOpen(false);
+    handleXuatKho();
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -877,12 +1051,12 @@ const NhapMuc = (props) => {
 
       {
         accessorKey: "thoigiannhapmucin",
-        header: "Thời gian nhập mực in",
+        header: "Thời gian nhập",
         size: 200,
       },
       {
         accessorKey: "nguoinhapmucin",
-        header: "Người nhập mực in",
+        header: "Người nhập",
         size: 150,
       },
     ],
@@ -925,6 +1099,40 @@ const NhapMuc = (props) => {
             flexWrap: "wrap",
           }}
         >
+          {role === "Người nhập" || role === "Người duyệt" ? (
+            <>
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+                id="upload-excel"
+              />
+              <ButtonBootstrap
+                className="btn btn-primary"
+                onClick={() => document.getElementById("upload-excel").click()}
+                disabled={importLoading}
+              >
+                {importLoading ? (
+                  <>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Đang import file excel...
+                  </>
+                ) : (
+                  <>
+                    <FileUploadIcon />
+                    Import file Excel
+                  </>
+                )}
+              </ButtonBootstrap>
+            </>
+          ) : (
+            <></>
+          )}
           <ButtonBootstrap
             className="btn btn-success"
             disabled={table.getPrePaginationRowModel().rows.length === 0}
@@ -1146,22 +1354,37 @@ const NhapMuc = (props) => {
         <div className="d-flex justify-content-between">
           <h5 className="mt-3">CÁC MỰC IN ĐÃ THÊM</h5>
         </div>
+        <Modal
+          title="Xác nhận xuất kho"
+          open={isModalOpen}
+          onOk={handleConfirmExport}
+          onCancel={() => setIsModalOpen(false)}
+          okText="Xuất kho"
+          cancelText="Hủy"
+        >
+          <p>
+            Tổng số mực cần xuất: <strong>{data.length}</strong> mực
+          </p>
+          <p>Chi tiết xuất kho:</p>
+          <ul>
+            {Object.entries(calculateInkQuantities(data)).map(
+              ([tenmuc, soluong], index) => (
+                <li key={index}>
+                  {tenmuc}: <strong>{soluong}</strong> cái
+                </li>
+              )
+            )}
+          </ul>
+        </Modal>
+
         {dataPhieu?.loaiphieu === "Phiếu xuất" ? (
           data && data.length > 0 ? (
-            <Popconfirm
-              title="Xuất kho"
-              description="Bạn có chắc chắn muốn xuất kho không?"
-              onConfirm={() => handleXuatKho()}
-              cancelText="Không"
-              okText="Có"
-            >
-              <Button type="primary" htmlType="submit">
-                Hoàn thành việc xuất kho
-              </Button>
-            </Popconfirm>
+            <Button type="primary" onClick={showConfirmModal}>
+              Hoàn thành xuất kho
+            </Button>
           ) : (
-            <Button type="primary" htmlType="submit" disabled>
-              Hoàn thành việc xuất kho
+            <Button type="primary" disabled>
+              Hoàn thành xuất kho
             </Button>
           )
         ) : (

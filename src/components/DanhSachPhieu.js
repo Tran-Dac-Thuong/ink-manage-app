@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ConfigProvider, notification, Popconfirm } from "antd";
+import { ConfigProvider, notification, Popconfirm, Select } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import {
   MaterialReactTable,
@@ -11,6 +11,7 @@ import { Button } from "antd";
 import { Box } from "@mui/material";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Helmet } from "react-helmet";
+import { Option } from "antd/es/mentions";
 
 const InkManager = (props) => {
   const [dataPhieuNhap, setDataPhieuNhap] = useState([]);
@@ -26,6 +27,9 @@ const InkManager = (props) => {
   const [dataSoLuongMucInDaNhap, setDataSoLuongMucInDaNhap] = useState([]);
   const [dataSoLuongMucInDaXuat, setDataSoLuongMucInDaXuat] = useState([]);
   const [dataSoLuongMucInTonKho, setDataSoLuongMucInTonKho] = useState([]);
+  const [danhSachThau, setDanhSachThau] = useState([]);
+
+  const [filterThau, setFilterThau] = useState("");
 
   const [encodeWorkerDuyet] = useState(
     () => new Worker("encodeWorkerDuyet.js")
@@ -378,6 +382,15 @@ const InkManager = (props) => {
           })
         );
 
+        const uniqueThau = [
+          ...new Set(
+            dataPhieuNhap
+              .filter((item) => item.loaiphieu === "Phiếu nhập")
+              .map((item) => item.nguoitaophieu)
+          ),
+        ];
+
+        setDanhSachThau(uniqueThau);
         setDataDaXuat(xuatArr);
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
@@ -500,6 +513,12 @@ const InkManager = (props) => {
 
     navigate("/dangnhap");
   };
+
+  const filteredData = dataPhieuNhap.filter((item) => {
+    const matchThau = filterThau ? item.nguoitaophieu === filterThau : true;
+
+    return matchThau;
+  });
 
   const columnsPhieuNhap = useMemo(
     () => [
@@ -841,6 +860,7 @@ const InkManager = (props) => {
     enableFullScreenToggle: false,
     enableRowActions: true,
     enableSorting: false,
+    enableFilters: true, // Enable filtering
     state: {
       isLoading: loadingDanhSachPhieu,
     },
@@ -1283,8 +1303,19 @@ const InkManager = (props) => {
         <div className="d-flex justify-content-between">
           <h5 className="mt-1">DANH SÁCH CÁC PHIẾU NHẬP</h5>
         </div>
-
-        <div className="mb-5">
+        <Select
+          placeholder="Lọc theo thầu"
+          allowClear
+          style={{ width: 200 }}
+          onChange={(value) => setFilterThau(value)}
+        >
+          {danhSachThau.map((item) => (
+            <Option key={item} value={item}>
+              {item}
+            </Option>
+          ))}
+        </Select>
+        <div className="mb-5 mt-3">
           <MaterialReactTable
             table={tablePhieuNhap}
             state={{ isLoading: true }}
