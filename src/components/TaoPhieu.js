@@ -555,17 +555,22 @@ const CreatePhieu = (props) => {
       {
         accessorKey: "stt",
         header: "STT",
-        size: 150,
+        size: 120,
       },
       {
         accessorKey: "sophieu",
         header: "Mã Số phiếu",
-        size: 150,
+        size: 120,
+      },
+      {
+        accessorKey: "tenphieu",
+        header: "Tên phiếu",
+        size: 120,
       },
       {
         accessorKey: "loaiphieu",
         header: "Loại phiếu",
-        size: 150,
+        size: 120,
         Cell: ({ cell }) => (
           <Box
             component="span"
@@ -588,13 +593,17 @@ const CreatePhieu = (props) => {
       {
         accessorKey: "ngaytaophieu",
         header: "Ngày tạo phiếu",
-        size: 150,
+        size: 120,
       },
-
+      {
+        accessorKey: "khoaphongxuatmuc",
+        header: "Xuất cho",
+        size: 120,
+      },
       {
         accessorKey: "trangthai",
         header: "Trạng thái",
-        size: 150,
+        size: 120,
         Cell: ({ cell }) => (
           <Box
             component="span"

@@ -132,9 +132,9 @@ const ThongKeNhap = (props) => {
           navigate("/dangnhap");
         } else {
           let decodeToken = await handleDecodeLoginInfo(token);
-          if (decodeToken?.role === "Người nhập") {
-            navigate("/forbidden");
-          }
+          // if (decodeToken?.role === "Người nhập") {
+          //   navigate("/forbidden");
+          // }
           setTendangnhap(decodeToken?.username);
         }
       };

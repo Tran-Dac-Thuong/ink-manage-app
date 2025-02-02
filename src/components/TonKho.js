@@ -12,13 +12,14 @@ import { Link, useNavigate } from "react-router-dom";
 import ButtonBootstrap from "react-bootstrap/Button";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import axios from "axios";
-import { Button, notification } from "antd";
+import { Button, notification, Select } from "antd";
 import { Helmet } from "react-helmet";
 import fontPath from "../fonts/Roboto-Black.ttf";
 import { PrinterFilled, UserOutlined } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
 import { PrintTemplateTonKho } from "./print-template/PrintTemplateTonKho";
 import Dropdown from "react-bootstrap/Dropdown";
+import { Option } from "antd/es/mentions";
 
 const TonKho = (props) => {
   const [dataTonkho, setDataTonKho] = useState([]);
@@ -31,9 +32,15 @@ const TonKho = (props) => {
   const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
   const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
 
+  const [danhSachThau, setDanhSachThau] = useState([]);
+
+  const [filterThau, setFilterThau] = useState("");
+
   const [tendangnhap, setTendangnhap] = useState("");
 
   const [loadingTonKho, setLoadingTonKho] = useState(true);
+
+  const [status, setStatus] = useState("");
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -198,10 +205,34 @@ const TonKho = (props) => {
             stt: idCounter++,
           }));
 
+          const filteredData = tonkhoArr.filter((item) => {
+            // Nếu không có filter thì trả về tất cả
+            if (!filterThau) return true;
+
+            // Nếu có filter thì lọc theo filterThau hoặc nguoinhapmucin rỗng
+            return (
+              item.nguoinhapmucin === filterThau ||
+              item.nguoinhapmucin === undefined
+            );
+          });
+
+          const uniqueThau = [
+            ...new Set(
+              tonkhoArr
+                .filter(
+                  (item) =>
+                    item.loaiphieu === "Phiếu nhập" && item.nguoinhapmucin
+                )
+                .map((item) => item.nguoinhapmucin)
+            ),
+          ];
+
+          setDanhSachThau(uniqueThau);
           setDataDaXuat(xuatArr);
           setDataDaNhap(nhapArr);
-          setDataTonKho(tonkhoArr);
+          setDataTonKho(filteredData);
           setLoadingTonKho(false);
+          setStatus("Fetch");
         }
       } catch (error) {
         api["error"]({
@@ -212,7 +243,12 @@ const TonKho = (props) => {
       }
     };
     fetchDataTonKho();
-  }, []);
+  }, [status]);
+
+  const handleFilterThau = (value) => {
+    setFilterThau(value);
+    setStatus("Filter");
+  };
 
   const handleDangXuat = () => {
     localStorage.removeItem("token");
@@ -476,7 +512,19 @@ const TonKho = (props) => {
           </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH TỒN KHO</h4>
-        <div className="mb-3">
+        <Select
+          placeholder="Lọc tồn kho theo thầu"
+          allowClear
+          style={{ width: 250 }}
+          onChange={(value) => handleFilterThau(value)}
+        >
+          {danhSachThau.map((item) => (
+            <Option key={item} value={item}>
+              {item}
+            </Option>
+          ))}
+        </Select>
+        <div className="mb-3 mt-3">
           {dataTonkho && dataTonkho.length > 0 ? (
             <>
               {" "}

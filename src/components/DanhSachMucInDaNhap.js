@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button, notification } from "antd";
+import { Button, notification, Select } from "antd";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -19,6 +19,7 @@ import { PrinterFilled, UserOutlined } from "@ant-design/icons";
 import { useReactToPrint } from "react-to-print";
 import { PrintTemplateDanhSachMucInDaNhap } from "./print-template/PrintTemplateDanhSachMucInDaNhap";
 import Dropdown from "react-bootstrap/Dropdown";
+import { Option } from "antd/es/mentions";
 
 const DanhSachMucInDaNhap = (props) => {
   const [danhSachDaNhap, setDanhSachDaNhap] = useState([]);
@@ -33,6 +34,12 @@ const DanhSachMucInDaNhap = (props) => {
   const [decodeWorkerData] = useState(() => new Worker("decodeWorkerData.js"));
   const [decodeWorkerRole] = useState(() => new Worker("decodeWorkerRole.js"));
   const [api, contextHolder] = notification.useNotification();
+
+  const [danhSachThau, setDanhSachThau] = useState([]);
+
+  const [filterThau, setFilterThau] = useState("");
+
+  const [status, setStatus] = useState("");
 
   const navigate = useNavigate();
 
@@ -198,10 +205,34 @@ const DanhSachMucInDaNhap = (props) => {
             stt: idCounter++,
           }));
 
+          const filteredData = danhsachdanhapArr.filter((item) => {
+            // Nếu không có filter thì trả về tất cả
+            if (!filterThau) return true;
+
+            // Nếu có filter thì lọc theo filterThau hoặc nguoinhapmucin rỗng
+            return (
+              item.nguoinhapmucin === filterThau ||
+              item.nguoinhapmucin === undefined
+            );
+          });
+
+          const uniqueThau = [
+            ...new Set(
+              danhsachdanhapArr
+                .filter(
+                  (item) =>
+                    item.loaiphieu === "Phiếu nhập" && item.nguoinhapmucin
+                )
+                .map((item) => item.nguoinhapmucin)
+            ),
+          ];
+
+          setDanhSachThau(uniqueThau);
           setDataDaXuat(xuatArr);
           setDataTonKho(tonkhoArr);
-          setDanhSachDaNhap(danhsachdanhapArr);
+          setDanhSachDaNhap(filteredData);
           setLoadingDanhSachDaNhap(false);
+          setStatus("Fetch");
         }
       } catch (error) {
         api["error"]({
@@ -212,7 +243,7 @@ const DanhSachMucInDaNhap = (props) => {
       }
     };
     fetchDanhSachDaNhap();
-  }, []);
+  }, [status]);
 
   const handleExportRowsExcel = (rows) => {
     try {
@@ -303,6 +334,11 @@ const DanhSachMucInDaNhap = (props) => {
     localStorage.removeItem("token");
 
     navigate("/dangnhap");
+  };
+
+  const handleFilterThau = (value) => {
+    setFilterThau(value);
+    setStatus("Filter");
   };
 
   const columns = useMemo(
@@ -475,7 +511,19 @@ const DanhSachMucInDaNhap = (props) => {
           </Dropdown>
         </div>
         <h4 className="text-center mt-5 mb-5">DANH SÁCH MỰC IN ĐÃ NHẬP</h4>
-        <div className="mb-3">
+        <Select
+          placeholder="Lọc mực đã nhập theo thầu"
+          allowClear
+          style={{ width: 250 }}
+          onChange={(value) => handleFilterThau(value)}
+        >
+          {danhSachThau.map((item) => (
+            <Option key={item} value={item}>
+              {item}
+            </Option>
+          ))}
+        </Select>
+        <div className="mb-3 mt-3">
           {danhSachDaNhap && danhSachDaNhap.length > 0 ? (
             <>
               {" "}

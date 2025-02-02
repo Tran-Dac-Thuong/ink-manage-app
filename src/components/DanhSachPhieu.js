@@ -382,6 +382,14 @@ const InkManager = (props) => {
           })
         );
 
+        // Tạo biến lọc dữ liệu
+        const filteredData = sortedResultArrayNhap.filter((item) => {
+          // Nếu không có filter thì trả về tất cả
+          if (!filterThau) return true;
+          // Nếu có filter thì so sánh nguoitaophieu
+          return item.nguoitaophieu === filterThau;
+        });
+
         const uniqueThau = [
           ...new Set(
             dataPhieuNhap
@@ -394,9 +402,10 @@ const InkManager = (props) => {
         setDataDaXuat(xuatArr);
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
-        setDataPhieuNhap(sortedResultArrayNhap);
+        setDataPhieuNhap(filteredData);
         setDataPhieuXuat(sortedResultArrayXuat);
         setLoadingDanhSachPhieu(false);
+        setStatus("Fetch");
       }
     } catch (error) {
       api["error"]({
@@ -404,6 +413,11 @@ const InkManager = (props) => {
         description: "Đã xảy ra lỗi trong quá trình hiển thị danh sách phiếu",
       });
     }
+  };
+
+  const handleFilterThau = (value) => {
+    setFilterThau(value);
+    setStatus("Filter");
   };
 
   useEffect(() => {
@@ -514,12 +528,6 @@ const InkManager = (props) => {
     navigate("/dangnhap");
   };
 
-  const filteredData = dataPhieuNhap.filter((item) => {
-    const matchThau = filterThau ? item.nguoitaophieu === filterThau : true;
-
-    return matchThau;
-  });
-
   const columnsPhieuNhap = useMemo(
     () => [
       {
@@ -566,6 +574,11 @@ const InkManager = (props) => {
       {
         accessorKey: "ngaytaophieu",
         header: "Ngày tạo phiếu",
+        size: 100,
+      },
+      {
+        accessorKey: "nguoitaophieu",
+        header: "Người tạo phiếu",
         size: 100,
       },
       {
@@ -1190,33 +1203,33 @@ const InkManager = (props) => {
             </button>
           </Link>
 
-          {role === "Người duyệt" || role === "Người xuất" ? (
-            <>
-              <div className="dropdown me-2">
-                <button
-                  type="button"
-                  className="btn btn-primary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  Thống kê
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkenhap"}>
-                      Thống kê nhập
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkexuat"}>
-                      Thống kê xuất
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </>
+          {/* {role === "Người duyệt" || role === "Người xuất" ? (
+            <> */}
+          <div className="dropdown me-2">
+            <button
+              type="button"
+              className="btn btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
+              Thống kê
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <Link className="dropdown-item" to={"/thongkenhap"}>
+                  Thống kê nhập
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to={"/thongkexuat"}>
+                  Thống kê xuất
+                </Link>
+              </li>
+            </ul>
+          </div>
+          {/* </>
           ) : (
             <></>
-          )}
+          )} */}
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />
@@ -1304,10 +1317,10 @@ const InkManager = (props) => {
           <h5 className="mt-1">DANH SÁCH CÁC PHIẾU NHẬP</h5>
         </div>
         <Select
-          placeholder="Lọc theo thầu"
+          placeholder="Lọc phiếu nhập theo thầu"
           allowClear
-          style={{ width: 200 }}
-          onChange={(value) => setFilterThau(value)}
+          style={{ width: 250 }}
+          onChange={(value) => handleFilterThau(value)}
         >
           {danhSachThau.map((item) => (
             <Option key={item} value={item}>
@@ -1330,19 +1343,19 @@ const InkManager = (props) => {
             }}
           />
         </div>
-        {role === "Người nhập" ? (
+        {/* {role === "Người nhập" ? (
           <></>
-        ) : (
-          <>
-            {" "}
-            <div className="d-flex justify-content-between">
-              <h5 className="mt-1">DANH SÁCH CÁC PHIẾU XUẤT</h5>
-            </div>
-            <div className="" style={{ marginBottom: "150px" }}>
-              <MaterialReactTable table={tablePhieuXuat} />
-            </div>
-          </>
-        )}
+        ) : ( */}
+        <>
+          {" "}
+          <div className="d-flex justify-content-between">
+            <h5 className="mt-1">DANH SÁCH CÁC PHIẾU XUẤT</h5>
+          </div>
+          <div className="" style={{ marginBottom: "150px" }}>
+            <MaterialReactTable table={tablePhieuXuat} />
+          </div>
+        </>
+        {/* )} */}
       </div>
     </>
   );

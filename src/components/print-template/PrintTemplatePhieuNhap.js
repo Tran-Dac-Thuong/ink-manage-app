@@ -90,7 +90,7 @@ export const PrintTemplatePhieuNhap = React.forwardRef((props, ref) => {
               <th>STT</th>
               <th>Tên mực</th>
               <th>Mã mực</th>
-              <th>Thời gian nhập mực in</th>
+              <th>Thời gian nhập</th>
               <th>Ghi chú</th>
             </tr>
           </thead>
