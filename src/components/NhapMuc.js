@@ -888,6 +888,14 @@ const NhapMuc = (props) => {
         for (const row of jsonData) {
           const qrcode = row["SỐ SERI"];
 
+          if (!qrcode) {
+            api["error"]({
+              message: "Thất bại",
+              description:
+                "File đã import không đúng định dạng. Vui lòng kiểm tra lại file trước khi import",
+            });
+            return;
+          }
           // // Check if ink already exists
           // const existsInk = InkArray.find((item) => item.qrcode === qrcode);
           // if (existsInk) {
@@ -985,19 +993,21 @@ const NhapMuc = (props) => {
           content: newTaoPhieuData,
         };
 
-        const jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
+        console.log("Import thành công");
 
-        await axios.get(
-          `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
-          { mode: "cors" }
-        );
+        // const jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
 
-        api["success"]({
-          message: "Thành công",
-          description: "Nhập mực in vào phiếu thành công",
-        });
+        // await axios.get(
+        //   `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+        //   { mode: "cors" }
+        // );
 
-        setStatus(randomString());
+        // api["success"]({
+        //   message: "Thành công",
+        //   description: "Nhập mực in vào phiếu thành công",
+        // });
+
+        // setStatus(randomString());
       } catch (error) {
         api["error"]({
           message: "Thất bại",
@@ -1007,12 +1017,14 @@ const NhapMuc = (props) => {
         setImportLoading(false);
       }
 
-      event.target.value = "";
+      // event.target.value = "";
     };
 
     if (file) {
       reader.readAsArrayBuffer(file);
     }
+
+    event.target.value = null;
   };
 
   // Hàm tính toán số lượng theo tên mực

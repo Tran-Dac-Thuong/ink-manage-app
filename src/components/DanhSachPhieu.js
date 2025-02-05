@@ -417,7 +417,7 @@ const InkManager = (props) => {
 
   const handleFilterThau = (value) => {
     setFilterThau(value);
-    setStatus("Filter");
+    setStatus(randomString());
   };
 
   useEffect(() => {

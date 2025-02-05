@@ -228,14 +228,29 @@ const SuaChuaMuc = (props) => {
               decodedContent: dataDecode,
             });
 
+            if (dataDecode?.content?.danhsachtonkho?.danhsachmucinthemvaokho) {
+              const mucTonKho =
+                dataDecode.content.danhsachtonkho.danhsachmucinthemvaokho;
+              const fixingInksInTonKho = mucTonKho.filter(
+                (mucin) => mucin?.suachua === "Đã sửa chữa"
+              );
+
+              if (fixingInksInTonKho?.length > 0) {
+                fixingInksArr = [...fixingInksArr, ...fixingInksInTonKho];
+              }
+            }
+
             if (
               dataDecode?.content?.danhsachphieu?.trangthai === "Đã xuất" ||
               dataDecode?.content?.danhsachphieu?.trangthai === "Đã duyệt"
             ) {
               const danhsachmucin =
                 dataDecode?.content?.danhsachphieu?.danhsachmucincuaphieu;
+              // console.log(danhsachmucin);
 
-              // Lọc các mực đã hoàn trả (hoantra = 1)
+              // const danhsachmucintrongkho =
+              //   dataDecode?.content?.danhsachtonkho?.danhsachmucinthemvaokho;
+
               const fixingInksInPhieu = danhsachmucin?.filter(
                 (mucin) =>
                   mucin?.suachua === "Đang sửa chữa" ||
@@ -329,6 +344,8 @@ const SuaChuaMuc = (props) => {
         resultSuachuaArr.sort(
           (a, b) => b.thoigiansuachuaTimestamp - a.thoigiansuachuaTimestamp
         );
+
+        // console.log(resultSuachuaArr);
 
         setOriginalFixingInks(resultSuachuaArr);
         setDataDaNhap(nhapArr);
@@ -621,6 +638,16 @@ const SuaChuaMuc = (props) => {
     navigate("/dangnhap");
   };
 
+  const randomString = (length = 8) => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   const handleHoanTatSuaChua = async (row) => {
     try {
       let res = await axios.get(`http://172.16.0.53:8080/danh_sach`);
@@ -685,10 +712,24 @@ const SuaChuaMuc = (props) => {
                         ?.danhsachmucinthemvaokho || [];
 
                     // Thêm mực đã sửa vào tồn kho
+                    // danhsachtonkho.push({
+                    //   ...timThayMuc,
+                    //   suachua: "Đã sửa chữa",
+                    //   thoigianketthucsuachua: currentTime,
+                    // });
+
                     danhsachtonkho.push({
                       ...timThayMuc,
+                      thoigiannhapmucin: mucTrongPhieuNhap.thoigiannhapmucin,
+                      thoigianxuat: "",
+                      khoaphongxuatmuc: "",
+
+                      loaiphieu: nhapDecode?.content?.danhsachphieu?.loaiphieu,
                       suachua: "Đã sửa chữa",
                       thoigianketthucsuachua: currentTime,
+                      tenphieu: nhapDecode?.content?.danhsachphieu?.tenphieu,
+                      nguoinhapmucin:
+                        nhapDecode?.content?.danhsachphieu?.nguoitaophieu,
                     });
 
                     // Cập nhật phiếu nhập
@@ -711,6 +752,9 @@ const SuaChuaMuc = (props) => {
                       },
                     };
 
+                    // console.log("updatedNhapContent", updatedNhapContent);
+                    // console.log("updatedXuatContent", updatedXuatContent);
+
                     let jwtTokenNhapContent = await handleEncodeHoanTatSuaChua(
                       updatedNhapContent
                     );
@@ -725,7 +769,7 @@ const SuaChuaMuc = (props) => {
                       `http://172.16.0.53:8080/update/${maSoPhieu}/${jwtTokenXuatContent}`
                     );
 
-                    setStatus("hoantatsua");
+                    setStatus(randomString());
                     api["success"]({
                       message: "Thành công",
                       description: "Đã hoàn tất sửa chữa và trả mực về kho",
