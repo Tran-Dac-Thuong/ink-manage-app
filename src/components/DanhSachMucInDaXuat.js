@@ -486,6 +486,11 @@ const DanhSachMucInDaXuat = (props) => {
               </li>
             </ul>
           </div>
+          <Link to="/kiemtramuc">
+            <button type="button" className="btn btn-success me-2">
+              Kiểm tra mực
+            </button>
+          </Link>
           {/* </>
           ) : (
             <></>
