@@ -320,10 +320,20 @@ const NhapMuc = (props) => {
         if (existsPhieu) {
           let decodeData = await handleDecodeData(existsPhieu?.content);
 
-          let decodeDanhsachmucin =
-            decodeData?.content?.danhsachphieu?.danhsachmucincuaphieu;
-          setData(decodeDanhsachmucin);
-          setLoadingMucIn(false);
+          if (
+            decodeData?.content?.danhsachphieu?.tenphieu ===
+              dataPhieu?.tenphieu &&
+            decodeData?.content?.danhsachphieu?.ngaytaophieu ===
+              dataPhieu?.ngaytaophieu
+          ) {
+            let decodeDanhsachmucin =
+              decodeData?.content?.danhsachphieu?.danhsachmucincuaphieu;
+            setData(decodeDanhsachmucin || []);
+          }
+          // let decodeDanhsachmucin =
+          //   decodeData?.content?.danhsachphieu?.danhsachmucincuaphieu;
+          // setData(decodeDanhsachmucin);
+          // setLoadingMucIn(false);
         }
 
         for (let i = 0; i < dataInkPhieu?.length; i++) {
@@ -359,6 +369,7 @@ const NhapMuc = (props) => {
         setDataDaNhap(nhapArr);
         setDataTonKho(tonkhoArr);
         setAllInkLists(allInks);
+        setLoadingMucIn(false);
       }
     } catch (error) {
       console.log(error);
@@ -993,21 +1004,19 @@ const NhapMuc = (props) => {
           content: newTaoPhieuData,
         };
 
-        console.log("Import thành công");
+        const jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
 
-        // const jwtToken = await handleEncodeNhapMucInCay(DataPhieuValues);
+        await axios.get(
+          `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
+          { mode: "cors" }
+        );
 
-        // await axios.get(
-        //   `http://172.16.0.53:8080/update/${dataPhieu?.sophieu}/${jwtToken}`,
-        //   { mode: "cors" }
-        // );
+        api["success"]({
+          message: "Thành công",
+          description: "Nhập mực in vào phiếu thành công",
+        });
 
-        // api["success"]({
-        //   message: "Thành công",
-        //   description: "Nhập mực in vào phiếu thành công",
-        // });
-
-        // setStatus(randomString());
+        setStatus(randomString());
       } catch (error) {
         api["error"]({
           message: "Thất bại",
@@ -1268,33 +1277,33 @@ const NhapMuc = (props) => {
             </button>
           </Link>
 
-          {role === "Người duyệt" || role === "Người xuất" ? (
-            <>
-              <div className="dropdown me-2">
-                <button
-                  type="button"
-                  className="btn btn-primary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  Thống kê
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkenhap"}>
-                      Thống kê nhập
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkexuat"}>
-                      Thống kê xuất
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </>
+          {/* {role === "Người duyệt" || role === "Người xuất" ? (
+            <> */}
+          <div className="dropdown me-2">
+            <button
+              type="button"
+              className="btn btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
+              Thống kê
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <Link className="dropdown-item" to={"/thongkenhap"}>
+                  Thống kê nhập
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to={"/thongkexuat"}>
+                  Thống kê xuất
+                </Link>
+              </li>
+            </ul>
+          </div>
+          {/* </>
           ) : (
             <></>
-          )}
+          )} */}
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />

@@ -20,6 +20,7 @@ import ThongKeXuat from "./components/ThongKeXuat";
 import ChinhSuaPhieu from "./components/ChinhSuaPhieu";
 import HoanTraMuc from "./components/HoanTraMuc";
 import SuaChuaMuc from "./components/SuaChuaMuc";
+import KiemTraMuc from "./components/KiemTraMuc";
 
 function App() {
   const [progress, setProgress] = useState(0);
@@ -94,7 +95,10 @@ function App() {
               path="/hoantramuc"
               element={<HoanTraMuc setProgress={setProgress} />}
             />
-
+            <Route
+              path="/kiemtramuc"
+              element={<KiemTraMuc setProgress={setProgress} />}
+            />
             <Route
               path="/suachuamucin"
               element={<SuaChuaMuc setProgress={setProgress} />}

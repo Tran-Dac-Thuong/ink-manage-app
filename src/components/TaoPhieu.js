@@ -867,7 +867,7 @@ const CreatePhieu = (props) => {
           flexWrap: "wrap",
         }}
       >
-        <ButtonBootstrap
+        {/* <ButtonBootstrap
           className="btn btn-success"
           disabled={table.getPrePaginationRowModel().rows.length === 0}
           onClick={() =>
@@ -886,7 +886,7 @@ const CreatePhieu = (props) => {
         >
           <FileDownloadIcon />
           Xuất file PDF
-        </ButtonBootstrap>
+        </ButtonBootstrap> */}
 
         <FormControlLabel
           control={
@@ -956,33 +956,33 @@ const CreatePhieu = (props) => {
             </button>
           </Link>
 
-          {role === "Người duyệt" || role === "Người xuất" ? (
-            <>
-              <div className="dropdown me-2">
-                <button
-                  type="button"
-                  className="btn btn-primary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                >
-                  Thống kê
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkenhap"}>
-                      Thống kê nhập
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to={"/thongkexuat"}>
-                      Thống kê xuất
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </>
+          {/* {role === "Người duyệt" || role === "Người xuất" ? (
+            <> */}
+          <div className="dropdown me-2">
+            <button
+              type="button"
+              className="btn btn-primary dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
+              Thống kê
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <Link className="dropdown-item" to={"/thongkenhap"}>
+                  Thống kê nhập
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to={"/thongkexuat"}>
+                  Thống kê xuất
+                </Link>
+              </li>
+            </ul>
+          </div>
+          {/* </>
           ) : (
             <></>
-          )}
+          )} */}
           <Dropdown data-bs-theme="dark">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               <UserOutlined />
