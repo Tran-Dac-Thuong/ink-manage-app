@@ -233,7 +233,7 @@ const HoanTraMuc = (props) => {
             mamuc: item.mamuc,
             qrcode: item.qrcode,
             tenphieu: item.tenphieu,
-
+            khoaphongxuatmuc: item.khoaphongxuatmuc,
             thoigianhoantra: item.thoigianhoantra,
             hoantra: item.hoantra,
             thoigianhoantraTimestamp: thoigianhoantraTimestampNhap,
@@ -684,6 +684,11 @@ const HoanTraMuc = (props) => {
       {
         accessorKey: "tenphieu",
         header: "Tên phiếu xuất",
+        size: 150,
+      },
+      {
+        accessorKey: "khoaphongxuatmuc",
+        header: "Xuất cho",
         size: 150,
       },
       {
