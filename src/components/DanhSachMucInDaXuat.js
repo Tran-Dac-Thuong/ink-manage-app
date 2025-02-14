@@ -248,6 +248,7 @@ const DanhSachMucInDaXuat = (props) => {
           "Tên mực": rowData[i].tenmuc,
           "Mã mực": rowData[i].mamuc,
           "Tên phiếu nhập": rowData[i].phieunhap,
+          "Tên phiếu xuất": rowData[i].tenphieu,
           "Tên khoa phòng": rowData[i].khoaphongxuatmuc,
           "Thời gian xuất": rowData[i].thoigianxuat,
         };
@@ -411,7 +412,7 @@ const DanhSachMucInDaXuat = (props) => {
           <FileDownloadIcon />
           Xuất file Excel
         </ButtonBootstrap>
-        <ButtonBootstrap
+        {/* <ButtonBootstrap
           className="btn btn-danger"
           disabled={table.getPrePaginationRowModel().rows.length === 0}
           onClick={() =>
@@ -420,7 +421,7 @@ const DanhSachMucInDaXuat = (props) => {
         >
           <FileDownloadIcon />
           Xuất file PDF
-        </ButtonBootstrap>
+        </ButtonBootstrap> */}
       </Box>
     ),
   });

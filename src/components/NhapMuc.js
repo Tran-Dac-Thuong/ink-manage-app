@@ -1164,7 +1164,7 @@ const NhapMuc = (props) => {
             <FileDownloadIcon />
             Xuất file Excel
           </ButtonBootstrap>
-          <ButtonBootstrap
+          {/* <ButtonBootstrap
             className="btn btn-danger"
             disabled={table.getPrePaginationRowModel().rows.length === 0}
             onClick={() =>
@@ -1173,7 +1173,7 @@ const NhapMuc = (props) => {
           >
             <FileDownloadIcon />
             Xuất file PDF
-          </ButtonBootstrap>
+          </ButtonBootstrap> */}
           <Popconfirm
             title="Xóa mực in"
             description="Bạn có chắc chắn muốn xóa những mực in này không?"

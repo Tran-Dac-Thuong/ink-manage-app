@@ -111,6 +111,8 @@ const KiemTraMuc = (props) => {
       (item) => item.qrcode === values.qrcode
     );
 
+    const mucDaXuat = dataDaXuat.find((item) => item.qrcode === values.qrcode);
+
     if (mucChuaDuyet) {
       api["info"]({
         message: "Thông tin mực",
@@ -130,19 +132,50 @@ const KiemTraMuc = (props) => {
         );
       });
 
+      const phieuDaXuat = dataDecode.find((phieu) => {
+        const danhSachMuc =
+          phieu.decodeContent?.content?.danhsachphieu?.danhsachmucincuaphieu;
+        const trangThai =
+          phieu.decodeContent?.content?.danhsachphieu?.trangthai;
+        return (
+          trangThai === "Đã xuất" &&
+          danhSachMuc?.some((muc) => muc.qrcode === values.qrcode)
+        );
+      });
+
       if (phieuDaDuyet) {
         const tenPhieu =
-          phieuDaDuyet.decodeContent?.content?.danhsachphieu?.tenphieu;
+          phieuDaDuyet?.decodeContent?.content?.danhsachphieu?.tenphieu;
+        const tenPhieuXuat =
+          phieuDaXuat?.decodeContent?.content?.danhsachphieu?.tenphieu;
         // const danhSachMuc =
         //   phieuDaDuyet.decodeContent?.content?.danhsachphieu
         //     ?.danhsachmucincuaphieu;
         // const mucInfo = danhSachMuc.find((muc) => muc.qrcode === values.qrcode);
 
-        api["success"]({
-          message: "Thông tin mực",
-          description: `Mực ${values.qrcode} đã được duyệt trong ${tenPhieu}
-                `,
-        });
+        if (mucDaXuat) {
+          api["success"]({
+            message: "Thông tin nhập",
+            description: `Mực ${values.qrcode} đã được duyệt trong ${tenPhieu}
+                  `,
+          });
+          api["warning"]({
+            message: "Thông tin xuất",
+            description: `Mực ${values.qrcode} đã được xuất trong ${tenPhieuXuat}
+                  `,
+          });
+        } else {
+          api["success"]({
+            message: "Thông tin nhập",
+            description: `Mực ${values.qrcode} đã được duyệt trong ${tenPhieu}
+                  `,
+          });
+          api["warning"]({
+            message: "Thông tin xuất",
+            description: `Mực ${values.qrcode} chưa được xuất cho khoa phòng nào
+                  `,
+          });
+        }
       } else {
         api["warning"]({
           message: "Thông tin mực",

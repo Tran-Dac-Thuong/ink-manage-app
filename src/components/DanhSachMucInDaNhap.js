@@ -429,7 +429,7 @@ const DanhSachMucInDaNhap = (props) => {
           <FileDownloadIcon />
           Xuất file Excel
         </ButtonBootstrap>
-        <ButtonBootstrap
+        {/* <ButtonBootstrap
           className="btn btn-danger"
           disabled={table.getPrePaginationRowModel().rows.length === 0}
           onClick={() =>
@@ -438,7 +438,7 @@ const DanhSachMucInDaNhap = (props) => {
         >
           <FileDownloadIcon />
           Xuất file PDF
-        </ButtonBootstrap>
+        </ButtonBootstrap> */}
       </Box>
     ),
   });
