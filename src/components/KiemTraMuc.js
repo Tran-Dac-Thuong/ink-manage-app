@@ -177,9 +177,9 @@ const KiemTraMuc = (props) => {
           });
         }
       } else {
-        api["warning"]({
-          message: "Thông tin mực",
-          description: `Không tìm thấy mực ${values.qrcode} trong hệ thống`,
+        api["error"]({
+          message: "Không tìm thấy mực",
+          description: `Mực ${values.qrcode} không có trong hệ thống`,
         });
       }
     }
