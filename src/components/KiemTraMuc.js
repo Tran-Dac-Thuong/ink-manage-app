@@ -115,7 +115,7 @@ const KiemTraMuc = (props) => {
 
     if (mucChuaDuyet) {
       api["info"]({
-        message: "Thông tin mực",
+        message: "Mực chưa được duyệt",
         description: `Mực ${values.qrcode} đã nhập và đang chờ duyệt trong ${mucChuaDuyet.tenphieu}
                      `,
       });

@@ -443,7 +443,7 @@ const SuaChuaMuc = (props) => {
                 `http://172.16.0.53:8080/update/${maSoPhieu}/${jwtTokenContent}`
               );
 
-              setStatus("chinhsua");
+              setStatus(randomString());
               setIsEditModalOpen(false);
               api["success"]({
                 message: "Thành công",
@@ -600,7 +600,7 @@ const SuaChuaMuc = (props) => {
                   `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
                 );
 
-                setStatus("suachua");
+                setStatus(randomString());
 
                 api["success"]({
                   message: "Thành công",
@@ -850,7 +850,7 @@ const SuaChuaMuc = (props) => {
                 `http://172.16.0.53:8080/update/${maSoPhieu}/${jwtTokenContent}`
               );
 
-              setStatus("dungsuachua");
+              setStatus(randomString());
               api["success"]({
                 message: "Thành công",
                 description: "Đã dừng sửa chữa mực",
@@ -921,7 +921,7 @@ const SuaChuaMuc = (props) => {
                 `http://172.16.0.53:8080/update/${maSoPhieu}/${jwtTokenContent}`
               );
 
-              setStatus("xoamuc");
+              setStatus(randomString());
               api["success"]({
                 message: "Thành công",
                 description: "Đã xóa mực khỏi danh sách sửa chữa",

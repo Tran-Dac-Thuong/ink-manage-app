@@ -200,10 +200,22 @@ const DanhSachMucInDaNhap = (props) => {
 
           // Thêm id vào từng phần tử của tonkhoArr
           let idCounter = 1;
-          danhsachdanhapArr = danhsachdanhapArr.map((item) => ({
-            ...item,
-            stt: idCounter++,
-          }));
+          // danhsachdanhapArr = danhsachdanhapArr.map((item) => ({
+          //   ...item,
+          //   stt: idCounter++,
+          // }));
+
+          // Inside fetchDanhSachDaNhap function
+          danhsachdanhapArr = danhsachdanhapArr.map((item) => {
+            // Find matching xuất record
+            // const xuatRecord = xuatArr.find((x) => x.qrcode === item.qrcode);
+
+            return {
+              ...item,
+              // tenphieuxuat: xuatRecord ? xuatRecord.tenphieu : null,
+              stt: idCounter++,
+            };
+          });
 
           const filteredData = danhsachdanhapArr.filter((item) => {
             // Nếu không có filter thì trả về tất cả
@@ -379,6 +391,48 @@ const DanhSachMucInDaNhap = (props) => {
         size: 150,
       },
       {
+        accessorKey: "tenphieuxuat",
+        header: "Tên phiếu xuất",
+        size: 150,
+        Cell: ({ cell, row }) => {
+          const inTonKho = dataTonkho.find(
+            (x) => x.qrcode === row.original.qrcode
+          );
+
+          const xuatRecord = dataDaXuat.find(
+            (x) => x.qrcode === row.original.qrcode
+          );
+          // if (inTonKho) {
+          //   return <span className="badge bg-warning">Tồn kho</span>;
+          // }
+          // if (!xuatRecord) {
+          //   return "Chưa xuất";
+          // }
+          // return xuatRecord.tenphieu || "Không có thông tin";
+
+          if (inTonKho) {
+            return "Chưa xuất";
+          }
+          if (xuatRecord) {
+            return xuatRecord.tenphieu;
+          }
+          return "Không có thông tin";
+        },
+        accessorFn: (row) => {
+          const inTonKho = dataTonkho.find((x) => x.qrcode === row.qrcode);
+
+          const xuatRecord = dataDaXuat.find((x) => x.qrcode === row.qrcode);
+
+          if (inTonKho) {
+            return "Chưa xuất";
+          }
+          if (xuatRecord) {
+            return xuatRecord.tenphieu;
+          }
+          return "Không có thông tin";
+        },
+      },
+      {
         accessorKey: "thoigiannhapmucin",
         header: "Thời gian nhập",
         size: 200,
@@ -389,8 +443,39 @@ const DanhSachMucInDaNhap = (props) => {
         size: 150,
         Cell: ({ cell }) => cell.getValue() || "Công ty TNHH Ngọc",
       },
+      {
+        accessorKey: "trangthai",
+        header: "Trạng thái",
+        size: 150,
+        Cell: ({ row }) => {
+          const inTonKho = dataTonkho.find(
+            (x) => x.qrcode === row.original.qrcode
+          );
+          const inDaXuat = dataDaXuat.find(
+            (x) => x.qrcode === row.original.qrcode
+          );
+
+          if (inTonKho) {
+            return <span className="badge bg-warning fs-6">Tồn kho</span>;
+          }
+          if (inDaXuat) {
+            return <span className="badge bg-success fs-6">Đã xuất</span>;
+          }
+          return (
+            <span className="badge bg-secondary fs-6">Không có thông tin</span>
+          );
+        },
+        accessorFn: (row) => {
+          const inTonKho = dataTonkho.find((x) => x.qrcode === row.qrcode);
+          const inDaXuat = dataDaXuat.find((x) => x.qrcode === row.qrcode);
+
+          if (inTonKho) return "Tồn kho";
+          if (inDaXuat) return "Đã xuất";
+          return "Không có thông tin";
+        },
+      },
     ],
-    []
+    [dataTonkho, dataDaXuat]
   );
 
   const table = useMaterialReactTable({
@@ -408,6 +493,15 @@ const DanhSachMucInDaNhap = (props) => {
     muiSkeletonProps: {
       animation: "pulse",
       height: 28,
+    },
+
+    enableGlobalFilter: true,
+    enableFilters: true,
+    initialState: { showGlobalFilter: false }, //show the global filter by default
+    muiSearchTextFieldProps: {
+      placeholder: "Tìm kiếm tất cả...",
+      sx: { minWidth: "300px" },
+      variant: "outlined",
     },
     paginationDisplayMode: "pages",
     renderTopToolbarCustomActions: ({ table }) => (
