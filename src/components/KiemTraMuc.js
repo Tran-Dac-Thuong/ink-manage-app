@@ -105,83 +105,102 @@ const KiemTraMuc = (props) => {
     setScanTimeout(timeout);
   };
 
-  const handleKiemTraMuc = (values) => {
-    // Tìm trong danh sách mực chưa duyệt
-    const mucChuaDuyet = allInkLists.find(
-      (item) => item.qrcode === values.qrcode
-    );
+  const handleKiemTraMuc = async (values) => {
+    try {
+      let res = await axios.post(
+        `http://172.16.0.53:8080/parse_name_id`,
+        { name_id: values.qrcode },
+        {
+          mode: "cors",
+        }
+      );
 
-    const mucDaXuat = dataDaXuat.find((item) => item.qrcode === values.qrcode);
+      let dataInkDecode = res.data.name + "_" + res.data.id;
 
-    if (mucChuaDuyet) {
-      api["info"]({
-        message: "Mực chưa được duyệt",
-        description: `Mực ${values.qrcode} đã nhập và đang chờ duyệt trong ${mucChuaDuyet.tenphieu}
+      // Tìm trong danh sách mực chưa duyệt
+      const mucChuaDuyet = allInkLists.find(
+        (item) => item.qrcode === dataInkDecode
+      );
+
+      const mucDaXuat = dataDaXuat.find(
+        (item) => item.qrcode === dataInkDecode
+      );
+
+      if (mucChuaDuyet) {
+        api["info"]({
+          message: "Mực chưa được duyệt",
+          description: `Mực ${dataInkDecode} đã nhập và đang chờ duyệt trong ${mucChuaDuyet.tenphieu}
                      `,
-      });
-    } else {
-      // Kiểm tra trong phiếu đã duyệt
-      const phieuDaDuyet = dataDecode.find((phieu) => {
-        const danhSachMuc =
-          phieu.decodeContent?.content?.danhsachphieu?.danhsachmucincuaphieu;
-        const trangThai =
-          phieu.decodeContent?.content?.danhsachphieu?.trangthai;
-        return (
-          trangThai === "Đã duyệt" &&
-          danhSachMuc?.some((muc) => muc.qrcode === values.qrcode)
-        );
-      });
+        });
+      } else {
+        // Kiểm tra trong phiếu đã duyệt
+        const phieuDaDuyet = dataDecode.find((phieu) => {
+          const danhSachMuc =
+            phieu.decodeContent?.content?.danhsachphieu?.danhsachmucincuaphieu;
+          const trangThai =
+            phieu.decodeContent?.content?.danhsachphieu?.trangthai;
+          return (
+            trangThai === "Đã duyệt" &&
+            danhSachMuc?.some((muc) => muc.qrcode === dataInkDecode)
+          );
+        });
 
-      const phieuDaXuat = dataDecode.find((phieu) => {
-        const danhSachMuc =
-          phieu.decodeContent?.content?.danhsachphieu?.danhsachmucincuaphieu;
-        const trangThai =
-          phieu.decodeContent?.content?.danhsachphieu?.trangthai;
-        return (
-          trangThai === "Đã xuất" &&
-          danhSachMuc?.some((muc) => muc.qrcode === values.qrcode)
-        );
-      });
+        const phieuDaXuat = dataDecode.find((phieu) => {
+          const danhSachMuc =
+            phieu.decodeContent?.content?.danhsachphieu?.danhsachmucincuaphieu;
+          const trangThai =
+            phieu.decodeContent?.content?.danhsachphieu?.trangthai;
+          return (
+            trangThai === "Đã xuất" &&
+            danhSachMuc?.some((muc) => muc.qrcode === dataInkDecode)
+          );
+        });
 
-      if (phieuDaDuyet) {
-        const tenPhieu =
-          phieuDaDuyet?.decodeContent?.content?.danhsachphieu?.tenphieu;
-        const tenPhieuXuat =
-          phieuDaXuat?.decodeContent?.content?.danhsachphieu?.tenphieu;
-        // const danhSachMuc =
-        //   phieuDaDuyet.decodeContent?.content?.danhsachphieu
-        //     ?.danhsachmucincuaphieu;
-        // const mucInfo = danhSachMuc.find((muc) => muc.qrcode === values.qrcode);
+        if (phieuDaDuyet) {
+          const tenPhieu =
+            phieuDaDuyet?.decodeContent?.content?.danhsachphieu?.tenphieu;
+          const tenPhieuXuat =
+            phieuDaXuat?.decodeContent?.content?.danhsachphieu?.tenphieu;
+          // const danhSachMuc =
+          //   phieuDaDuyet.decodeContent?.content?.danhsachphieu
+          //     ?.danhsachmucincuaphieu;
+          // const mucInfo = danhSachMuc.find((muc) => muc.qrcode === values.qrcode);
 
-        if (mucDaXuat) {
-          api["success"]({
-            message: "Thông tin nhập",
-            description: `Mực ${values.qrcode} đã được duyệt trong ${tenPhieu}
+          if (mucDaXuat) {
+            api["success"]({
+              message: "Thông tin nhập",
+              description: `Mực ${dataInkDecode} đã được duyệt trong ${tenPhieu}
                   `,
-          });
-          api["warning"]({
-            message: "Thông tin xuất",
-            description: `Mực ${values.qrcode} đã được xuất trong ${tenPhieuXuat}
+            });
+            api["warning"]({
+              message: "Thông tin xuất",
+              description: `Mực ${dataInkDecode} đã được xuất trong ${tenPhieuXuat}
                   `,
-          });
+            });
+          } else {
+            api["success"]({
+              message: "Thông tin nhập",
+              description: `Mực ${dataInkDecode} đã được duyệt trong ${tenPhieu}
+                  `,
+            });
+            api["warning"]({
+              message: "Thông tin xuất",
+              description: `Mực ${dataInkDecode} chưa được xuất cho khoa phòng nào
+                  `,
+            });
+          }
         } else {
-          api["success"]({
-            message: "Thông tin nhập",
-            description: `Mực ${values.qrcode} đã được duyệt trong ${tenPhieu}
-                  `,
-          });
-          api["warning"]({
-            message: "Thông tin xuất",
-            description: `Mực ${values.qrcode} chưa được xuất cho khoa phòng nào
-                  `,
+          api["error"]({
+            message: "Không tìm thấy mực",
+            description: `Mực ${dataInkDecode} không có trong hệ thống`,
           });
         }
-      } else {
-        api["error"]({
-          message: "Không tìm thấy mực",
-          description: `Mực ${values.qrcode} không có trong hệ thống`,
-        });
       }
+    } catch (error) {
+      api["error"]({
+        message: "Thất bại",
+        description: `Đã xảy ra lỗi trong quá trình kiểm tra mực`,
+      });
     }
 
     form.resetFields();
