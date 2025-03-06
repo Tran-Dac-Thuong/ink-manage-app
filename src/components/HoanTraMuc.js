@@ -122,6 +122,16 @@ const HoanTraMuc = (props) => {
     });
   };
 
+  const randomString = (length = 8) => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   useEffect(() => {
     FetchDataPhieuInk();
   }, [status]);
@@ -442,7 +452,7 @@ const HoanTraMuc = (props) => {
                   `http://172.16.0.53:8080/update/${mucInVaMaSoPhieu.masophieuxuat}/${jwtTokenContent}`
                 );
 
-                setStatus("hoantra");
+                setStatus(randomString());
 
                 api["success"]({
                   message: "Thành công",

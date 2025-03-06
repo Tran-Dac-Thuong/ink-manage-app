@@ -29,6 +29,10 @@ const InkManager = (props) => {
   const [dataSoLuongMucInTonKho, setDataSoLuongMucInTonKho] = useState([]);
   const [danhSachThau, setDanhSachThau] = useState([]);
 
+  const [searchNhap, setSearchNhap] = useState("");
+  const [searchXuat, setSearchXuat] = useState("");
+  const [searchTonKho, setSearchTonKho] = useState("");
+
   const [filterThau, setFilterThau] = useState("");
 
   const [encodeWorkerDuyet] = useState(
@@ -864,6 +868,25 @@ const InkManager = (props) => {
     }
   };
 
+  // Thêm các biến filtered được tính toán bằng useMemo
+  const filteredDataNhap = useMemo(() => {
+    return dataSoLuongMucInDaNhap.filter((item) =>
+      item.qrcode.toLowerCase().includes(searchNhap.toLowerCase())
+    );
+  }, [dataSoLuongMucInDaNhap, searchNhap]);
+
+  const filteredDataXuat = useMemo(() => {
+    return dataSoLuongMucInDaXuat.filter((item) =>
+      item.qrcode.toLowerCase().includes(searchXuat.toLowerCase())
+    );
+  }, [dataSoLuongMucInDaXuat, searchXuat]);
+
+  const filteredDataTonKho = useMemo(() => {
+    return dataSoLuongMucInTonKho.filter((item) =>
+      item.qrcode.toLowerCase().includes(searchTonKho.toLowerCase())
+    );
+  }, [dataSoLuongMucInTonKho, searchTonKho]);
+
   const tablePhieuNhap = useMaterialReactTable({
     columns: columnsPhieuNhap,
     data: dataPhieuNhap,
@@ -1248,19 +1271,30 @@ const InkManager = (props) => {
         </div>
         <div className="mb-5">
           <h5>SỐ LƯỢNG ĐÃ NHẬP CỦA TỪNG LOẠI MỰC</h5>
+          <input
+            type="text"
+            className="form-control w-25 mb-2"
+            placeholder="Tìm kiếm mực..."
+            value={searchNhap}
+            onChange={(e) => setSearchNhap(e.target.value)}
+          />
           <div className="d-flex flex-wrap gap-2">
             {dataSoLuongMucInDaNhap && dataSoLuongMucInDaNhap.length > 0 ? (
-              dataSoLuongMucInDaNhap.map((item, index) => (
-                <button
-                  type="button"
-                  className="btn btn-success"
-                  style={{ fontWeight: "bold" }}
-                  key={index}
-                >
-                  {item.qrcode}{" "}
-                  <span className="badge bg-danger">{item.soluong}</span>
-                </button>
-              ))
+              filteredDataNhap.length > 0 ? (
+                filteredDataNhap.map((item, index) => (
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    style={{ fontWeight: "bold" }}
+                    key={index}
+                  >
+                    {item.qrcode}{" "}
+                    <span className="badge bg-danger">{item.soluong}</span>
+                  </button>
+                ))
+              ) : (
+                <div>Không tìm thấy mực</div>
+              )
             ) : (
               <>
                 <div className="spinner-border text-primary" role="status">
@@ -1272,19 +1306,30 @@ const InkManager = (props) => {
         </div>
         <div className="mb-5">
           <h5>SỐ LƯỢNG ĐÃ XUẤT CỦA TỪNG LOẠI MỰC</h5>
+          <input
+            type="text"
+            className="form-control w-25 mb-2"
+            placeholder="Tìm kiếm mực..."
+            value={searchXuat}
+            onChange={(e) => setSearchXuat(e.target.value)}
+          />
           <div className="d-flex flex-wrap gap-2">
             {dataSoLuongMucInDaXuat && dataSoLuongMucInDaXuat.length > 0 ? (
-              dataSoLuongMucInDaXuat.map((item, index) => (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  style={{ fontWeight: "bold" }}
-                  key={index}
-                >
-                  {item.qrcode}{" "}
-                  <span class="badge bg-success">{item.soluong}</span>
-                </button>
-              ))
+              filteredDataXuat.length > 0 ? (
+                filteredDataXuat.map((item, index) => (
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    style={{ fontWeight: "bold" }}
+                    key={index}
+                  >
+                    {item.qrcode}{" "}
+                    <span className="badge bg-success">{item.soluong}</span>
+                  </button>
+                ))
+              ) : (
+                <div>Không tìm thấy mực</div>
+              )
             ) : (
               <>
                 <div className="spinner-border text-primary" role="status">
@@ -1296,19 +1341,30 @@ const InkManager = (props) => {
         </div>
         <div className="mb-5">
           <h5>SỐ LƯỢNG TỒN KHO CỦA TỪNG LOẠI MỰC</h5>
+          <input
+            type="text"
+            className="form-control w-25 mb-2"
+            placeholder="Tìm kiếm mực..."
+            value={searchTonKho}
+            onChange={(e) => setSearchTonKho(e.target.value)}
+          />
           <div className="d-flex flex-wrap gap-2">
             {dataSoLuongMucInTonKho && dataSoLuongMucInTonKho.length > 0 ? (
-              dataSoLuongMucInTonKho.map((item, index) => (
-                <button
-                  type="button"
-                  className="btn btn-warning"
-                  style={{ fontWeight: "bold" }}
-                  key={index}
-                >
-                  {item.qrcode}{" "}
-                  <span class="badge bg-danger">{item.soluong}</span>
-                </button>
-              ))
+              filteredDataTonKho.length > 0 ? (
+                filteredDataTonKho.map((item, index) => (
+                  <button
+                    type="button"
+                    className="btn btn-warning"
+                    style={{ fontWeight: "bold" }}
+                    key={index}
+                  >
+                    {item.qrcode}{" "}
+                    <span className="badge bg-danger">{item.soluong}</span>
+                  </button>
+                ))
+              ) : (
+                <div>Không tìm thấy mực</div>
+              )
             ) : (
               <>
                 <div className="spinner-border text-primary" role="status">
