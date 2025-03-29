@@ -20,6 +20,7 @@ import { useReactToPrint } from "react-to-print";
 import { PrintTemplateDanhSachMucInDaNhap } from "./print-template/PrintTemplateDanhSachMucInDaNhap";
 import Dropdown from "react-bootstrap/Dropdown";
 import { Option } from "antd/es/mentions";
+// import dataBackup from "../../src/components/data/dataBackup.json";
 
 const DanhSachMucInDaNhap = (props) => {
   const [danhSachDaNhap, setDanhSachDaNhap] = useState([]);
@@ -40,6 +41,8 @@ const DanhSachMucInDaNhap = (props) => {
   const [filterThau, setFilterThau] = useState("");
 
   const [status, setStatus] = useState("");
+
+  // const [danhSachBackup, setDanhSachBackup] = useState([]);
 
   const navigate = useNavigate();
 
@@ -129,6 +132,53 @@ const DanhSachMucInDaNhap = (props) => {
     getRole();
   }, []);
 
+  // useEffect(() => {
+  //   const fetchDataBackup = async () => {
+  //     try {
+  //       let danhsachbackupArr = [];
+
+  //       const decodedDataBackup = [];
+  //       for (const item of dataBackup) {
+  //         try {
+  //           let dataDecode = await handleDecodeData(item.content);
+
+  //           decodedDataBackup.push({
+  //             ...item,
+  //             decodedContent: dataDecode,
+  //           });
+  //         } catch (error) {
+  //           console.error("Error decoding item:", item, error);
+  //           api["error"]({
+  //             message: "Lỗi",
+  //             description:
+  //               "Đã xảy ra lỗi trong quá trình hiển thị danh sách backup",
+  //           });
+  //         }
+  //       }
+
+  //       for (let i = 0; i < decodedDataBackup.length; i++) {
+  //         if (
+  //           decodedDataBackup[i].decodedContent?.content?.danhsachphieu
+  //             ?.trangthai === "Đã xuất"
+  //         ) {
+  //           let danhsachmucinxuatkho =
+  //             decodedDataBackup[i].decodedContent?.content?.danhsachphieu
+  //               ?.danhsachmucincuaphieu;
+  //           danhsachbackupArr = [...danhsachbackupArr, ...danhsachmucinxuatkho];
+  //         }
+  //       }
+
+  //       setDanhSachBackup(danhsachbackupArr);
+  //     } catch (error) {
+  //       api["error"]({
+  //         message: "Lỗi",
+  //         description: "Đã xảy ra lỗi trong quá trình lấy danh sách backup",
+  //       });
+  //     }
+  //   };
+  //   fetchDataBackup();
+  // }, []);
+
   useEffect(() => {
     const fetchDanhSachDaNhap = async () => {
       try {
@@ -137,6 +187,7 @@ const DanhSachMucInDaNhap = (props) => {
           let tonkhoArr = [];
           let xuatArr = [];
           let danhsachdanhapArr = [];
+          // let danhsachbackupArr = [];
 
           const listData = res?.data;
 
@@ -158,6 +209,40 @@ const DanhSachMucInDaNhap = (props) => {
               });
             }
           }
+
+          // const decodedDataBackup = [];
+          // for (const item of dataBackup) {
+          //   try {
+          //     let dataDecode = await handleDecodeData(item.content);
+
+          //     decodedDataBackup.push({
+          //       ...item,
+          //       decodedContent: dataDecode,
+          //     });
+          //   } catch (error) {
+          //     console.error("Error decoding item:", item, error);
+          //     api["error"]({
+          //       message: "Lỗi",
+          //       description:
+          //         "Đã xảy ra lỗi trong quá trình hiển thị danh sách backup",
+          //     });
+          //   }
+          // }
+
+          // for (let i = 0; i < decodedDataBackup.length; i++) {
+          //   if (
+          //     decodedDataBackup[i].decodedContent?.content?.danhsachphieu
+          //       ?.trangthai === "Đã xuất"
+          //   ) {
+          //     let danhsachmucinxuatkho =
+          //       decodedDataBackup[i].decodedContent?.content?.danhsachphieu
+          //         ?.danhsachmucincuaphieu;
+          //     danhsachbackupArr = [
+          //       ...danhsachbackupArr,
+          //       ...danhsachmucinxuatkho,
+          //     ];
+          //   }
+          // }
 
           for (let i = 0; i < decodedData.length; i++) {
             if (
@@ -239,6 +324,7 @@ const DanhSachMucInDaNhap = (props) => {
             ),
           ];
 
+          // setDanhSachBackup(danhsachbackupArr);
           setDanhSachThau(uniqueThau);
           setDataDaXuat(xuatArr);
           setDataTonKho(tonkhoArr);
@@ -402,13 +488,22 @@ const DanhSachMucInDaNhap = (props) => {
           const xuatRecord = dataDaXuat.find(
             (x) => x.qrcode === row.original.qrcode
           );
+
+          // const backupRecord = danhSachBackup.find(
+          //   (x) => x.qrcode === row.original.qrcode
+          // );
+
           // if (inTonKho) {
-          //   return <span className="badge bg-warning">Tồn kho</span>;
-          // }
-          // if (!xuatRecord) {
           //   return "Chưa xuất";
           // }
-          // return xuatRecord.tenphieu || "Không có thông tin";
+          // if (xuatRecord) {
+          //   return xuatRecord.tenphieu;
+          // }
+          // if (backupRecord) {
+          //   return backupRecord.tenphieu + " (Backup)";
+          // }
+
+          // return "Không có thông tin";
 
           if (inTonKho) {
             return "Chưa xuất";
@@ -416,12 +511,29 @@ const DanhSachMucInDaNhap = (props) => {
           if (xuatRecord) {
             return xuatRecord.tenphieu;
           }
+          // return `Không có thông tin ${
+          //   backupRecord ? backupRecord.tenphieu + "(Backup)" : ""
+          // }`;
           return "Không có thông tin";
         },
         accessorFn: (row) => {
           const inTonKho = dataTonkho.find((x) => x.qrcode === row.qrcode);
 
           const xuatRecord = dataDaXuat.find((x) => x.qrcode === row.qrcode);
+          // const backupRecord = danhSachBackup.find(
+          //   (x) => x.qrcode === row.qrcode
+          // );
+
+          // if (inTonKho) {
+          //   return "Chưa xuất";
+          // }
+          // if (xuatRecord) {
+          //   return xuatRecord.tenphieu;
+          // }
+          // if (backupRecord) {
+          //   return backupRecord.tenphieu + " (Backup)";
+          // }
+          // return "Không có thông tin";
 
           if (inTonKho) {
             return "Chưa xuất";
@@ -429,6 +541,9 @@ const DanhSachMucInDaNhap = (props) => {
           if (xuatRecord) {
             return xuatRecord.tenphieu;
           }
+          // return `Không có thông tin ${
+          //   backupRecord ? backupRecord.tenphieu + "(Backup)" : ""
+          // }`;
           return "Không có thông tin";
         },
       },
@@ -476,6 +591,7 @@ const DanhSachMucInDaNhap = (props) => {
       },
     ],
     [dataTonkho, dataDaXuat]
+    // [dataTonkho, dataDaXuat, danhSachBackup]
   );
 
   const table = useMaterialReactTable({

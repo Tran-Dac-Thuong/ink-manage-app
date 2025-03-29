@@ -367,6 +367,16 @@ const CreatePhieu = (props) => {
     }
   };
 
+  const randomString = (length = 8) => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   const handleTaoPhieu = async (values) => {
     let phieudachon = values.chonloaiphieu
       ? values.chonloaiphieu
@@ -435,11 +445,11 @@ const CreatePhieu = (props) => {
         message: "Thành công",
         description: "Phiếu đã được tạo thành công",
       });
-      setStatus("Create");
-      setTimeout(() => {
-        setStatus("");
-      }, 500);
-
+      // setStatus("Create");
+      // setTimeout(() => {
+      //   setStatus("");
+      // }, 500);
+      setStatus(randomString());
       form.resetFields();
     } catch (error) {
       api["error"]({
